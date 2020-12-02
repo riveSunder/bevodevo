@@ -17,7 +17,7 @@ Evolutionary algorithms tend to be "[embarrassingly parallel](https://en.wikiped
 
 ```
 sudo apt update
-sudo apt install -y libopenmpi-dev cmake
+sudo apt install -y libopenmpi-dev cmake build-essential swig
 ``` 
 
 I haven't tested this project on other operating systems and so I can't vouch for installation on Windows or MacOS, but [Spinning Up](https://spinningup.openai.com/en/latest/user/installation.html#installing-openmpi) instructs it's  `brew install openmpi` to install OpenMPI on Mac. 
