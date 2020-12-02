@@ -36,7 +36,7 @@ Candidate algorithms for implementation in `bevodevo` include:
 
 ### Why?
 
-Evolution is a fascinating example of unpredictable complexity arising from simple rules. It also is capable of generating machines that are orders of magnitude more efficient than any human-engineered alternative, with the capacity for intelligence in the human brain demanding only 20 Watts (or perhaps ~150 Watts if we include all supporting functionality) a prime example. All this from a set of rules that can essentially be boiled down to a less catchy version of the [classic refrain from stoic philosophy](https://en.wikipedia.org/wiki/Que_Sera,_Sera_(Whatever_Will_Be,_Will_Be): 
+Evolution is a fascinating example of unpredictable complexity arising from simple rules. It also is capable of generating machines that are orders of magnitude more efficient than any human-engineered alternative, with the capacity for intelligence in the human brain demanding only 20 Watts (or perhaps ~150 Watts if we include all supporting functionality) a prime example. All this from a set of rules that can essentially be boiled down to a less catchy version of the [classic refrain](https://en.wikipedia.org/wiki/Que_Sera,_Sera_(Whatever_Will_Be,_Will_Be) from stoic philosophy.
 
 <blockquote><em>ce qui sera très probablement, sera très probablement</em></blockquote>
 
