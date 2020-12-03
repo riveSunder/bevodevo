@@ -37,9 +37,6 @@ class RandomSearch(ESPopulation):
 
         self.elite_pop, elite_fitness = self.get_elite(fitness_list)
 
-        for jj in range(self.elite_keep):
-            self.elite_pop.append(self.population[sorted_indices[jj]])
-
         for nn in range(self.elite_keep):
             self.population[nn].set_params(self.champions[nn].get_params())
 
