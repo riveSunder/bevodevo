@@ -189,7 +189,7 @@ class ESPopulation:
                 for oo in range(self.elite_keep):
                     for pp in range(self.elite_keep):
 
-                        if sorted_fitness[oo] > self.leaderboard[pp]:
+                        if sorted_fitness[oo] >= self.leaderboard[pp]:
                             self.leaderboard.insert(pp, sorted_fitness[oo])
                             self.champions.insert(pp, self.population[sorted_indices[oo]])
                             sorted_fitness[oo] = -float("Inf")
@@ -214,6 +214,7 @@ class ESPopulation:
                         axis=0)
 
         params_mean = np.mean(params, axis=0)
+        self.means = params_mean
 
         if self.elitism:
             
@@ -320,6 +321,10 @@ class ESPopulation:
 
 
         for seed in seeds:
+
+            self.champions = None
+            self.leaderboard = None
+            self.abort = False
             # seed everything
             my_seed = seed
             np.random.seed(my_seed)
@@ -457,6 +462,7 @@ class ESPopulation:
 
                 if threshold_count >= 4:
                     print("performance threshold met, ending training")
+                    print(self.means)
                     self.abort = True
 
                 generation += 1
