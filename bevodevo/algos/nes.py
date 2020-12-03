@@ -39,25 +39,29 @@ class NESPopulation(ESPopulation):
         self.elite_update = False
         self.tourney_size = 20
 
-    def get_advantage(self, sorted_fitness_list, advantage_mode=2):
+    def get_advantage(self, sorted_fitness_list, advantage_mode=3):
         """
-            advantage_mode 0 - normalize fitness list to have mean 0 and std. dev. of 1.0 
-            advantage_mode 1 - shift all fitnesses to be positive and 
+            advantage_mode 0 - do nothing, returing sorted_fitness_list as advantage
+            advantage_mode 1 - normalize fitness list to have mean 0 and std. dev. of 1.0 
+            advantage_mode 2 - shift all fitnesses to be positive and 
                 divide by max fitness score 
-            advantage_mode 2 - return fitness scores as percentiles 0 to 0.99
-            3 - use a value function as an advantage baseline (not yet
+            advantage_mode 3 - return fitness scores as percentiles 0 to 0.99
+            advantage_mode 4 - use a value function as an advantage baseline (not yet
                 implemented)
         """
+
         my_mean = np.mean(sorted_fitness_list)
         my_std_dev = np.std(sorted_fitness_list)
         my_min = np.min(sorted_fitness_list)
         my_max = np.max(sorted_fitness_list - my_min)
 
         if advantage_mode == 0:
-            advantage = (sorted_fitness_list - my_mean) / (my_std_dev + 1e-6)
+            advantage = sorted_fitness_list
         elif advantage_mode == 1:
+            advantage = (sorted_fitness_list - my_mean) / (my_std_dev + 1e-6)
+        elif advantage_mode == 2:
             advantage = (sorted_fitness_list - my_min) / my_max 
-        else:
+        elif advantage_mode == 3:
             fit_length = len(sorted_fitness_list)
             advantage = (fit_length - np.arange(fit_length)) / fit_length
 
