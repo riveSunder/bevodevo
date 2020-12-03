@@ -448,91 +448,6 @@ class ABCHebbianMLP(HebbianMLP):
                         requires_grad=self.use_grad)
 
 
-class HebbianCAMLP(HebbianMLP):
-
-    def __init__(self, args, discrete=False, use_grad=False, plastic=True):
-        super(HebbianCAMLP, self).__init__(args, discrete, use_grad, plastic)
-        
-        # two extra outputs for the number of update steps to use when applying CA rules 
-        # and the probability of any given cell being changed. (Cells are weights in this policy)
-        # self.action_dim += 2
-
-        
-    def init_traces(self):
-
-        self.eligibility_layers = [torch.zeros(self.hid_dims[0], self.input_dim)]
-
-        for jj in range(len(self.hid_dims)-1):
-
-            self.eligibility_layers.append(torch.zeros(self.hid_dims[jj+1], self.hid_dims[jj]))
-
-        self.eligibility_layers.append(torch.zeros(self.action_dim, self.hid_dims[-1]))
-
-        self.init_pgen()
-
-    def init_pgen(self):
-        # Policy generating network is comprised of a 2 layer MLP, but implemented as convolutional layers 
-
-        self.pgen = []
-
-        for mm in range(len(self.hid_dims)+2):
-            self.pgen.append(nn.Sequential(\
-                    nn.Conv2d(4,16,1, stride=1, padding=0, bias=False),\
-                    nn.Tanh(),\
-                    nn.Conv2d(16,1,1, stride=1, padding=0, bias=False),\
-                    nn.Tanh()))
-
-    def update(self):
-
-        num_layers = len(list(self.layers.named_parameters()))
-        layer_count = 0
-
-        dim_ch = 4
-
-        for param in list(self.layers.named_parameters()):
-
-            layer_dim_x, layer_dim_y = param[1].shape[1], param[1].shape[0]
-            state_grid = torch.ones(1, dim_ch, layer_dim_y, layer_dim_x, requires_grad=False)
-
-            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count+1].T, self.nodes[layer_count]) 
-            self.eligibility_layers[layer_count] = torch.clamp(self.eligibility_layers[layer_count], min=self.e_min, max=self.e_max)
-
-            state_grid[0,0,:,:] = param[1]
-            state_grid[0,1,:,:] = self.eligibility_layers[layer_count]
-            state_grid[0,2,:,:] *= self.nodes[layer_count]
-            state_grid[0,3,:,:] *= self.nodes[layer_count + 1].T
-
-            param[1][:,:] = self.pgen[layer_count](state_grid).squeeze()
-
-            layer_count += 1
-
-    def get_params(self):
-        params = np.array([])
-
-        for param in self.layers.named_parameters():
-            params = np.append(params, param[1].detach().numpy().ravel())
-
-        if self.lr_layers is not None and self.plastic:
-            for ll in range(len(self.pgen)):
-                for param in self.pgen[ll].named_parameters():
-                    params = np.append(params, param[1].detach().numpy().ravel())
-
-        return params
-
-    def set_params(self, my_params):
-
-        param_start = 0
-
-        for model in self.pgen:
-            for name, param in model.named_parameters():
-                
-                param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
-
-                param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
-                        requires_grad=self.use_grad)
-
-
 class CPPNHebbianMLP(HebbianMLP):
 
     def __init__(self, args, discrete=False, use_grad=False):
@@ -756,7 +671,6 @@ if __name__ == "__main__":
     temp = MLPPolicy(args)
     temp = HebbianMLP(args)
     temp = ABCHebbianMLP(args)
-    temp = HebbianCAMLP(args)
     temp = CPPNHebbianMLP(args)
     temp = CPPNMLPPolicy(args)
 
