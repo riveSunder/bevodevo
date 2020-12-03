@@ -443,7 +443,7 @@ class ESPopulation:
                 else:
                     threshold_count = 0
 
-                if threshold_count >= 4:
+                if threshold_count >= 5:
                     print("performance threshold met, ending training")
                     print(self.means)
                     self.abort = True
@@ -457,9 +457,16 @@ class ESPopulation:
                             "results/{}/best_agent_{}_gen_{}_s{}.pt"\
                             .format(args.exp_name, exp_id, generation, seed))
 
-                    elite_params = {}
-                    for ii, elite in enumerate(self.elite_pop):
-                        elite_params["elite_{}".format(ii)] = elite.get_params()
+                    if self.elitism:
+
+                        elite_params = {}
+                        for ii, elite in enumerate(self.champions):
+                            elite_params["elite_{}".format(ii)] = elite.get_params()
+                    else:
+                        elite_params = {}
+                        for ii, elite in enumerate(self.elite_pop):
+                            elite_params["elite_{}".format(ii)] = elite.get_params()
+
 
 
                     np.save("results/{}/elite_pop_{}_gen_{}_s{}".\
