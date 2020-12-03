@@ -32,7 +32,7 @@ def enjoy(argv):
     # env_name, generations, population_size, 
     
 
-    if "elite_pop" not in argv.file_path:
+    if "elite_pop" not in argv.file_path and ".pt" not in argv.file_path:
         my_dir = os.listdir(argv.file_path)
         latest_gen = 0
         my_file_path = ""
@@ -44,6 +44,8 @@ def enjoy(argv):
                     my_file_path = argv.file_path + filename
     else:
         my_file_path = argv.file_path
+
+    print(my_file_path)
 
     if "GatedRNN" in argv.policy:
         policy_fn = SimpleGatedRNNPolicy
@@ -72,7 +74,7 @@ def enjoy(argv):
         obs_dim = obs_dim
     else:
         obs_dim = obs_dim[0]
-    hid_dim = 16 
+    hid_dim = [32,32] 
 
 
     try:
@@ -84,65 +86,82 @@ def enjoy(argv):
 
     no_array = act_dim == 2 and discrete 
 
-    parameters = np.load(my_file_path, allow_pickle=True)[np.newaxis][0]
+    if ".npy" in my_file_path:
+        parameters = np.load(my_file_path, allow_pickle=True)[np.newaxis][0]
+    else:
+        parameters = torch.load(my_file_path)
 
     if type(parameters) is dict:
-        agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
-                "dim_y": act_dim, "params": parameters["elite_0"]} 
+        elite_keep = len(parameters)
     else:
-        agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
-                "dim_y": act_dim, "params": parameters} 
+        elite_keep = 1
 
-    agent = policy_fn(agent_args, discrete=discrete)
-    agent.set_params(agent_args["params"])
+    for agent_idx in range(min([argv.num_agents, elite_keep])):
 
-    epd_rewards = []
-    for episode in range(argv.episodes):
-        obs = env.reset()
-        sum_reward = 0.0
-        done = False
-        step_count = 0
-        while not done:
+        if type(parameters) is dict:
+            agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
+                    "dim_y": act_dim, "params": parameters["elite_0"]} 
+        else:
+            agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
+                    "dim_y": act_dim, "params": parameters} 
+            if ".pt" in my_file_path:
+                agent_args["params"] = None
 
-            action = agent.get_action(obs)
+        agent = policy_fn(agent_args, discrete=discrete)
 
-            if no_array and type(action) == np.ndarray\
-                    or len(action.shape) > 1:
+        if ".pt" in my_file_path:
+            agent.load_state_dict(parameters)
+            agent_args["params"] = agent.get_params()
 
-                action = action[0]
+        agent.set_params(agent_args["params"])
 
-            obs, reward, done, info = env.step(action)
-            step_count += 1
+        epd_rewards = []
+        for episode in range(argv.episodes):
+            obs = env.reset()
+            sum_reward = 0.0
+            done = False
+            step_count = 0
+            while not done:
 
-            sum_reward += reward
+                action = agent.get_action(obs)
 
-            if gym_render:
-                env.render()
-            if argv.save_frames:
-                
-                if "BulletEnv" in argv.env_name:
-                    env.unwrapped._render_width = 640
-                    env.unwrapped._render_height = 480
+                if no_array and type(action) == np.ndarray\
+                        or len(action.shape) > 1:
 
-                img = env.render(mode="rgb_array")
-                plt.figure()
-                plt.imshow(img)
-                plt.savefig("./frames/frame_epd{}_step{}.png".format(\
-                        episode, step_count))
-                plt.close()
+                    action = action[0]
 
-            time.sleep(0.001)
-            if step_count >= argv.max_steps:
-                done = True
+                obs, reward, done, info = env.step(action)
+                step_count += 1
+
+                sum_reward += reward
+
+                if gym_render:
+                    env.render()
+                if argv.save_frames:
+                    
+                    if "BulletEnv" in argv.env_name:
+                        env.unwrapped._render_width = 640
+                        env.unwrapped._render_height = 480
+
+                    img = env.render(mode="rgb_array")
+                    plt.figure()
+                    plt.imshow(img)
+                    plt.savefig("./frames/frame_epd{}_step{}.png".format(\
+                            episode, step_count))
+                    plt.close()
+
+                time.sleep(0.001)
+                if step_count >= argv.max_steps:
+                    done = True
 
 
 
 
-        epd_rewards.append(sum_reward)
+            epd_rewards.append(sum_reward)
 
-    print("reward stats over {} epds:".format(argv.episodes))
-    print("mean rew: {:.3e}, +/- {:.3e} std. dev.".format(np.mean(epd_rewards), np.std(epd_rewards)))
-    print("max rew: {:.3e}, min rew: {:.3e}".format(np.max(epd_rewards), np.min(epd_rewards)))
+        print("reward stats for elite {} over {} epds:".format(agent_idx, argv.episodes))
+        print("mean rew: {:.3e}, +/- {:.3e} std. dev.".format(np.mean(epd_rewards), np.std(epd_rewards)))
+        print("max rew: {:.3e}, min rew: {:.3e}".format(np.max(epd_rewards), np.min(epd_rewards)))
 
     env.close()
         
@@ -165,6 +184,9 @@ if __name__ == "__main__":
     parser.add_argument("-fp", "--file_path", type=str,\
             help="file path to model parameters", \
             default="./results/test_exp/")
+    parser.add_argument("-a", "--num_agents", type=int,\
+            help="how many agents to evaluate", \
+            default=1)
 
 
 
