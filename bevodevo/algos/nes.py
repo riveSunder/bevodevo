@@ -37,6 +37,31 @@ class NESPopulation(ESPopulation):
         self.std_dev_min = 1e-3
         self.lr_min = 1e-6
         self.elite_update = False
+        self.tourney_size = 20
+
+    def get_advantage(self, sorted_fitness_list, advantage_mode=2):
+        """
+            advantage_mode 0 - normalize fitness list to have mean 0 and std. dev. of 1.0 
+            advantage_mode 1 - shift all fitnesses to be positive and 
+                divide by max fitness score 
+            advantage_mode 2 - return fitness scores as percentiles 0 to 0.99
+            3 - use a value function as an advantage baseline (not yet
+                implemented)
+        """
+        my_mean = np.mean(sorted_fitness_list)
+        my_std_dev = np.std(sorted_fitness_list)
+        my_min = np.min(sorted_fitness_list)
+        my_max = np.max(sorted_fitness_list - my_min)
+
+        if advantage_mode == 0:
+            advantage = (sorted_fitness_list - my_mean) / (my_std_dev + 1e-6)
+        elif advantage_mode == 1:
+            advantage = (sorted_fitness_list - my_min) / my_max 
+        else:
+            fit_length = len(sorted_fitness_list)
+            advantage = (fit_length - np.arange(fit_length)) / fit_length
+
+        return advantage
 
     def get_update(self, fitness_list):
 
@@ -44,18 +69,16 @@ class NESPopulation(ESPopulation):
         sorted_indices.reverse()
         sorted_fitness = np.array(fitness_list)[sorted_indices]
 
-
         fitness_mean = np.mean(fitness_list)
         fitness_std = np.std(fitness_list)
         gradient_log_probability = np.zeros_like(self.means)
         gradient_fitness = np.zeros_like(self.means)
 
-        self.elite_pop, elite_fitness = self.get_elite(fitness_list, mode=0)
+        self.elite_pop, elite_fitness = self.get_elite(fitness_list, mode=2)
 
         if self.elite_update:
 
-            #advantage = (elite_fitness - fitness_mean) / (fitness_std + 1e-6)
-            advantage = elite_fitness / (np.max(elite_fitness) +1e-6)
+            advantage = self.get_advantage(elite_fitness) 
 
             for mm in range(self.elite_keep):
                 
@@ -66,10 +89,9 @@ class NESPopulation(ESPopulation):
                 gradient_fitness += advantage[mm] * gradient_log_probability
 
         else:
-
-            #advantage = (fitness_list - fitness_mean) / (fitness_std + 1e-6)
-            advantage = fitness_list / (np.max(fitness_list) +1e-6)
             
+            advantage = self.get_advantage(sorted_fitness) 
+
             for mm in range(self.population_size):
                 
                 gradient_log_probability += (1 / self.population_size) \
