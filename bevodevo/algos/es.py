@@ -438,32 +438,40 @@ class ESPopulation:
                 np.save("results/{}/progress_{}_s{}.npy".format(args.exp_name, exp_id, seed),\
                         results, allow_pickle=True)
 
+                if my_max >= self.threshold:
+                    threshold_count += 1
+                else:
+                    threshold_count = 0
+
+                if threshold_count >= 5:
+                    print("performance threshold met, ending training")
+                    print(self.means)
+                    self.abort = True
+
                 if (generation > 0 and (generation % save_every == 0)) \
-                        or generation == max_generations-1:
+                        or generation == max_generations-1\
+                        or self.abort:
                     
 
                     torch.save(self.elite_pop[0].state_dict(), \
                             "results/{}/best_agent_{}_gen_{}_s{}.pt"\
                             .format(args.exp_name, exp_id, generation, seed))
 
-                    elite_params = {}
-                    for ii, elite in enumerate(self.elite_pop):
-                        elite_params["elite_{}".format(ii)] = elite.get_params()
+                    if self.elitism:
+
+                        elite_params = {}
+                        for ii, elite in enumerate(self.champions):
+                            elite_params["elite_{}".format(ii)] = elite.get_params()
+                    else:
+                        elite_params = {}
+                        for ii, elite in enumerate(self.elite_pop):
+                            elite_params["elite_{}".format(ii)] = elite.get_params()
+
 
 
                     np.save("results/{}/elite_pop_{}_gen_{}_s{}".\
                             format(args.exp_name, exp_id, generation, seed),\
                             elite_params)
-
-                if my_max >= self.threshold:
-                    threshold_count += 1
-                else:
-                    threshold_count = 0
-
-                if threshold_count >= 4:
-                    print("performance threshold met, ending training")
-                    print(self.means)
-                    self.abort = True
 
                 generation += 1
                 
