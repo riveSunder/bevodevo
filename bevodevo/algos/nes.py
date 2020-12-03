@@ -30,13 +30,13 @@ class NESPopulation(ESPopulation):
         super(NESPopulation, self).__init__(policy_fn, discrete = discrete,\
                 num_workers = num_workers)
         
-        self.lr = 1e-4
-        self.std_dev = 1e0 #5e-1
+        self.lr = 3e-4
+        self.std_dev = 1e0
         self.lr_decay = 1. - 1e-4
         self.std_dev_decay = 1. - 1e-7
         self.std_dev_min = 1e-3
         self.lr_min = 1e-6
-        self.elite_update = True
+        self.elite_update = False
 
     def get_update(self, fitness_list):
 
@@ -50,11 +50,12 @@ class NESPopulation(ESPopulation):
         gradient_log_probability = np.zeros_like(self.means)
         gradient_fitness = np.zeros_like(self.means)
 
-        self.elite_pop, elite_fitness = self.get_elite(fitness_list, mode=2)
+        self.elite_pop, elite_fitness = self.get_elite(fitness_list, mode=0)
 
         if self.elite_update:
 
-            advantage = (elite_fitness - fitness_mean) / (fitness_std + 1e-6)
+            #advantage = (elite_fitness - fitness_mean) / (fitness_std + 1e-6)
+            advantage = elite_fitness / (np.max(elite_fitness) +1e-6)
 
             for mm in range(self.elite_keep):
                 
@@ -66,7 +67,8 @@ class NESPopulation(ESPopulation):
 
         else:
 
-            advantage = (fitness_list - fitness_mean) / (fitness_std + 1e-6)
+            #advantage = (fitness_list - fitness_mean) / (fitness_std + 1e-6)
+            advantage = fitness_list / (np.max(fitness_list) +1e-6)
             
             for mm in range(self.population_size):
                 
@@ -89,12 +91,12 @@ class NESPopulation(ESPopulation):
     def update_pop(self, fitness_list):
 
         update = self.get_update(fitness_list)
-        self.means = self.means + self.lr * update
+        self.means = self.means - self.lr * update
 
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj].get_params()) #[jj] = self.champions[jj]
 
             my_start = self.elite_keep
         else:
