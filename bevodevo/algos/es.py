@@ -353,6 +353,7 @@ class ESPopulation:
             results["mean_fitness"] = []
             results["max_fitness"] = []
             results["std_dev_fitness"] = []
+            results["args"] = str(args)
 
             fitness_list = []
             t0 = time.time()
