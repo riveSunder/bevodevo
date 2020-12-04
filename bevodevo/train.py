@@ -27,8 +27,8 @@ from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
-from bevodevo.algos.vpg import VanillaPolicyGradient
-from bevodevo.algos.dqn import DQN
+#from bevodevo.algos.vpg import VanillaPolicyGradient
+#from bevodevo.algos.dqn import DQN
 
 
 def train(argv):

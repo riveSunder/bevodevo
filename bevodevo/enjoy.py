@@ -25,7 +25,8 @@ from bevodevo.algos.cmaes import CMAESPopulation
 from bevodevo.algos.pges import PGESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
-from bevodevo.algos.dqn import DQN
+
+#from bevodevo.algos.dqn import DQN
 
 def enjoy(argv):
 
@@ -47,22 +48,28 @@ def enjoy(argv):
 
     print(my_file_path)
 
-    if "GatedRNN" in argv.policy:
+    if "gatedrnn" in argv.policy.lower():
         policy_fn = SimpleGatedRNNPolicy
-    elif "ImpalaCNNPolicy" in argv.policy:
+    elif "impala"  in argv.policy.lower():
         policy_fn = ImpalaCNNPolicy
-    elif "MLPPolicy" in argv.policy:
+    elif "mlppolicy" in argv.policy.lower():
         policy_fn = MLPPolicy
     else:
         print("policy not found, resorting to default MLP policy")
         policy_fn = MLPPolicy
 
-    env = gym.make(argv.env_name)
+    if ".npy" in my_file_path:
+        my_data = np.load(my_file_path, allow_pickle=True)[np.newaxis][0]
+        env_name = my_data["env_name"]
+    else:
+        env_name = argv.env_name
+
+    env = gym.make(env_name)
 
     if argv.no_render:
         gym_render = False
     else:
-        if "BulletEnv" in argv.env_name:
+        if "BulletEnv" in env_name:
             env.render()
             gym_render = False
         else:
@@ -137,6 +144,7 @@ def enjoy(argv):
 
                 if gym_render:
                     env.render()
+                    time.sleep(1e-2)
                 if argv.save_frames:
                     
                     if "BulletEnv" in argv.env_name:

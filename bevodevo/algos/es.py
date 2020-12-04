@@ -470,6 +470,7 @@ class ESPopulation:
 
 
 
+                    elite_params["env_name"] = env_name
                     np.save("results/{}/elite_pop_{}_gen_{}_s{}".\
                             format(args.exp_name, exp_id, generation, seed),\
                             elite_params)

@@ -19,6 +19,12 @@ class ImpalaCNNPolicy(nn.Module):
         #agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, "dim_y": act_dim, "params": None} 
         super(ImpalaCNNPolicy, self).__init__()
 
+        self.use_grad = use_grad
+        self.input_dim = args["dim_x"] 
+        self.action_dim = args["dim_y"]
+        self.hid_dims = args["dim_h"]
+        self.hid_dims = self.hid_dims if type(self.hid_dims) is list else [self.hid_dims]
+
         # TODO: allow adjustable layers and parameter dims
         if type(args["dim_x"]) == list:
             assert len(self.input_dim) >= 3, "cnn expects 3D input dims"
@@ -26,9 +32,6 @@ class ImpalaCNNPolicy(nn.Module):
             print("warning, cnns expect 3D input dims. Assuming height, width = 64, 64")
             self.input_dim = [64, 64, args["dim_x"]]
 
-        self.action_dim = args["dim_y"]
-        self.hid_dims = args["dim_h"]
-        self.hid_dims = self.hid_dims if type(self.hid_dims) is list else [self.hid_dims]
 
         self.filters = filters
         self.activations = activations
@@ -119,6 +122,9 @@ class ImpalaCNNPolicy(nn.Module):
         return logits
 
     def get_action(self, x):
+
+        # assuming 8-bit rgb images
+        x = x / 255
 
         logits = self.forward(x)
 
