@@ -146,8 +146,8 @@ def enjoy(argv):
                     img = env.render(mode="rgb_array")
                     plt.figure()
                     plt.imshow(img)
-                    plt.savefig("./frames/frame_epd{}_step{}.png".format(\
-                            episode, step_count))
+                    plt.savefig("./frames/frame_agent{}_pd{}_step{}.png".format(\
+                            agent_idx, episode, step_count))
                     plt.close()
 
                 time.sleep(0.001)
@@ -181,7 +181,7 @@ if __name__ == "__main__":
             help="don't render", default=False)
     parser.add_argument("-ms", "--max_steps", type=int,\
             help="maximum number of steps per episode", default=4000)
-    parser.add_argument("-fp", "--file_path", type=str,\
+    parser.add_argument("-f", "--file_path", type=str,\
             help="file path to model parameters", \
             default="./results/test_exp/")
     parser.add_argument("-a", "--num_agents", type=int,\

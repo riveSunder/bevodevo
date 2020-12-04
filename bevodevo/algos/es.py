@@ -42,7 +42,7 @@ class ESPopulation:
     def get_agent_action(self, obs, agent_idx):
         return self.population[agent_idx].get_action(obs)
 
-    def get_fitness(self, agent_idx, epds=8, render=False, view_elite=False):
+    def get_fitness(self, agent_idx, epds=4, render=False, view_elite=False):
         fitness = []
         sum_rewards = []
         total_steps = 0

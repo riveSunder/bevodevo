@@ -26,6 +26,7 @@ if __name__ == "__main__":
             my_data = np.load(args.filepath + filename, allow_pickle=True)
 
             my_data = my_data[np.newaxis][0]
+            print("exp hyperparameters: \n", my_data["args"])
 
             x = my_data[args.independent_variable]
             y = np.array(my_data["mean_fitness"])
