@@ -42,7 +42,7 @@ class ESPopulation:
     def get_agent_action(self, obs, agent_idx):
         return self.population[agent_idx].get_action(obs)
 
-    def get_fitness(self, agent_idx, epds=8, render=False, view_elite=False):
+    def get_fitness(self, agent_idx, epds=4, render=False, view_elite=False):
         fitness = []
         sum_rewards = []
         total_steps = 0
@@ -353,6 +353,7 @@ class ESPopulation:
             results["mean_fitness"] = []
             results["max_fitness"] = []
             results["std_dev_fitness"] = []
+            results["args"] = str(args)
 
             fitness_list = []
             t0 = time.time()
@@ -469,6 +470,7 @@ class ESPopulation:
 
 
 
+                    elite_params["env_name"] = env_name
                     np.save("results/{}/elite_pop_{}_gen_{}_s{}".\
                             format(args.exp_name, exp_id, generation, seed),\
                             elite_params)

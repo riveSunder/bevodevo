@@ -27,30 +27,35 @@ from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
-from bevodevo.algos.vpg import VanillaPolicyGradient
-from bevodevo.algos.dqn import DQN
+#from bevodevo.algos.vpg import VanillaPolicyGradient
+#from bevodevo.algos.dqn import DQN
 
 
 def train(argv):
 
     # env_name, generations, population_size, 
     
-    if "GatedRNN" in argv.policy:
+    if "gatedrnn" in argv.policy.lower():
         policy_fn = SimpleGatedRNNPolicy
-    elif "ImpalaCNNPolicy" in argv.policy:
+        argv.policy = "SimpleGatedRNNPolicy" 
+    elif "impala" in argv.policy.lower():
         policy_fn = ImpalaCNNPolicy
-    elif "CPPNMLP" in argv.policy:
+        argv.policy = "ImpalaCNNPolicy"
+    elif "cppnmlp" in argv.policy.lower():
         policy_fn = CPPNMLPPolicy
-    elif "ABCHebbianMLP" in argv.policy:
+        arg.policy = "CPPNMLPPolicy"
+    elif "abchebbianmlp" in argv.policy.lower():
         policy_fn = ABCHebbianMLP
-    elif "CPPNHebbianMLP" in argv.policy:
+        argv.policy = "ABCHebbianMLP"
+    elif "cppnhebbianmlp" in argv.policy.lower():
         policy_fn = CPPNHebbianMLP
-    elif "HebbianMLP" in argv.policy:
+        argv.policy = "CPPNHebbianMLP"
+    elif "hebbianmlp" in argv.policy.lower():
         policy_fn = HebbianMLP
-    elif "HebbianCAMLP" in argv.policy:
-        policy_fn = HebbianCAMLP
-    elif "MLPPolicy" in argv.policy:
+        argv.policy = "HebbianMLP"
+    elif "mlppolicy" in argv.policy.lower():
         policy_fn = MLPPolicy
+        argv.policy = "MLPPolicy"
     else:
         assert False, "policy not found, check spelling?"
 
@@ -64,10 +69,9 @@ def train(argv):
         population_fn = PGESPopulation
     elif "NES" in argv.algorithm:
         population_fn = NESPopulation
-    elif "DQN" in argv.algorithm:
+    elif "dqn" in argv.algorithm:
         population_fn = DQN
-    elif "vanillavolicyvradient" in argv.algorithm.lower()\
-            or "vpg" in argv.algorithm.lower():
+    elif "vpg" in argv.algorithm.lower():
         population_fn = VanillaPolicyGradient
     elif "andom" in argv.algorithm:
         population_fn = RandomSearch

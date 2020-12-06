@@ -22,10 +22,11 @@ if __name__ == "__main__":
     my_dir = os.listdir(args.filepath)
 
     for filename in my_dir:
-        if "progress" in filename:
+        if "progress" in filename and ".npy" in filename:
             my_data = np.load(args.filepath + filename, allow_pickle=True)
 
             my_data = my_data[np.newaxis][0]
+            print("exp hyperparameters: \n", my_data["args"])
 
             x = my_data[args.independent_variable]
             y = np.array(my_data["mean_fitness"])
@@ -41,7 +42,7 @@ if __name__ == "__main__":
             plt.fill_between(x, y-std_dev_y, y+std_dev_y, alpha=0.5, label="+/- standard deviation")
             plt.xlabel(args.independent_variable, fontsize=14)
             plt.ylabel("fitness", fontsize=14)
-            plt.title("{}".format(filename[:-4]),\
+            plt.title("{}".format(filename[9:-4]),\
                     fontsize=16)
             plt.legend()
 

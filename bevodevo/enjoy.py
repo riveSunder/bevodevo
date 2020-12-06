@@ -25,7 +25,8 @@ from bevodevo.algos.cmaes import CMAESPopulation
 from bevodevo.algos.pges import PGESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
-from bevodevo.algos.dqn import DQN
+
+#from bevodevo.algos.dqn import DQN
 
 def enjoy(argv):
 
@@ -47,22 +48,28 @@ def enjoy(argv):
 
     print(my_file_path)
 
-    if "GatedRNN" in argv.policy:
+    if "gatedrnn" in argv.policy.lower():
         policy_fn = SimpleGatedRNNPolicy
-    elif "ImpalaCNNPolicy" in argv.policy:
+    elif "impala"  in argv.policy.lower():
         policy_fn = ImpalaCNNPolicy
-    elif "MLPPolicy" in argv.policy:
+    elif "mlppolicy" in argv.policy.lower():
         policy_fn = MLPPolicy
     else:
         print("policy not found, resorting to default MLP policy")
         policy_fn = MLPPolicy
 
-    env = gym.make(argv.env_name)
+    if ".npy" in my_file_path:
+        my_data = np.load(my_file_path, allow_pickle=True)[np.newaxis][0]
+        env_name = my_data["env_name"]
+    else:
+        env_name = argv.env_name
+
+    env = gym.make(env_name)
 
     if argv.no_render:
         gym_render = False
     else:
-        if "BulletEnv" in argv.env_name:
+        if "BulletEnv" in env_name:
             env.render()
             gym_render = False
         else:
@@ -137,6 +144,7 @@ def enjoy(argv):
 
                 if gym_render:
                     env.render()
+                    time.sleep(1e-2)
                 if argv.save_frames:
                     
                     if "BulletEnv" in argv.env_name:
@@ -146,11 +154,11 @@ def enjoy(argv):
                     img = env.render(mode="rgb_array")
                     plt.figure()
                     plt.imshow(img)
-                    plt.savefig("./frames/frame_epd{}_step{}.png".format(\
-                            episode, step_count))
+                    plt.savefig("./frames/frame_agent{}_pd{}_step{}.png".format(\
+                            agent_idx, episode, step_count))
                     plt.close()
 
-                time.sleep(0.001)
+                time.sleep(0.01)
                 if step_count >= argv.max_steps:
                     done = True
 
@@ -181,7 +189,7 @@ if __name__ == "__main__":
             help="don't render", default=False)
     parser.add_argument("-ms", "--max_steps", type=int,\
             help="maximum number of steps per episode", default=4000)
-    parser.add_argument("-fp", "--file_path", type=str,\
+    parser.add_argument("-f", "--file_path", type=str,\
             help="file path to model parameters", \
             default="./results/test_exp/")
     parser.add_argument("-a", "--num_agents", type=int,\
