@@ -1,5 +1,10 @@
 # Bootstrapping Deep Neuroevolution and Developmental Learning
 
+<div align="center">
+<img src="assets/by_your_tether.jpg" width=65%>
+<br>
+</div>
+
 This project is a resource for experiment and self-study for evolutionary and developmental algorithms, particularly in the context of reinforcement learning tasks and the quest to understand intelligence. This document contains instructions for installing and getting started with experiments, for introductory and tutorial essays see the [BevoDevo Guide](./guide.md).
 
 [Spinning Up](https://spinningup.openai.com) by [Joshua Achiam](https://github.com/jachiam) was a noteworthy inspiration and spiritual predecessor to this project, and the associated [repository](https://github.com/openai/spinningup) is an exceptional resource. 
