@@ -1,7 +1,7 @@
 # Bootstrapping Deep Neuroevolution and Developmental Learning
 
 <div align="center">
-<img src="assets/by_your_tether.jpg" width=65%>
+<img src="assets/by_your_tether.jpg" width=25%>
 <br>
 </div>
 
