@@ -14,7 +14,7 @@
     1. [Installation](#installation)
     1. [Running Experiments](#running-experiments)
     1. [Visualizing Experimental Results](#visualizing-experimental-results)
-
+1. [EvoDevo Examples](./examples.md)
 1. [EvoDevo Reading List](#evodevo-reading-list)
 
 ## _Release Status and Roadmap_

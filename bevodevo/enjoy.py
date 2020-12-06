@@ -158,7 +158,7 @@ def enjoy(argv):
                             agent_idx, episode, step_count))
                     plt.close()
 
-                time.sleep(0.001)
+                time.sleep(0.01)
                 if step_count >= argv.max_steps:
                     done = True
 
