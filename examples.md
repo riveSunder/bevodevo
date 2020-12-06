@@ -45,7 +45,7 @@ Watching a trained agent apply its solution policy is about as exciting as you m
 A version of the pole-balancing problem with a continuous action space, implemented in PyBullet. The continuous action space makes for a slightly more difficult task. Random search still does manage to stumble upon the answer, but the slightly more clever simple Gaussian evo. strategy finds a solution faster and more reliably.  
 
 <div align="center">
-<img src="./assets/es_invertedpendulum.png" width=80%>
+<img src="./assets/rs_invertedpendulum.png" width=80%>
 <br>
 </div>
 
@@ -58,6 +58,8 @@ python -m bevodevo.train -a RandomSearch -n InvertedPendulumBulletEnv-v0 -g 2500
 
 <div align="center">
 <img src="./assets/es_invertedpendulum.png" width=80%>
+<br>
+<img src="./assets/es_invertedpendulum.gif" width=60%>
 <br>
 </div>
 
