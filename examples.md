@@ -92,3 +92,22 @@ A slightly more difficult balancing task can be had by adding a joint to the pol
 python -m bevodevo.train -a CMAESPopulation -n InvertedDoublePendulumBulletEnv-v0 -g 250 \
 -w 40 -t 9200.0 -pi MLPPolicy -p 80 -s 13 1337 42
 ```
+
+## HopperBulletEnv
+
+Now getting into simplified robotic locomotion tasks, `HopperBulletEnv-v0` is a 2D, single-legged forward movement task with a large foot. In my experience, 2D locomotion RL tasks are somewhat misleading in terms of their difficulty. While agents don't have to avoid falling over perpendicular to the direction of travel, with two legs (or a big foot) it's easy to get stuck in a local minimum of just standing still. 
+
+
+<div align="center">
+<img src="./assets/nes_hopper42.png" width=80%>
+<br>
+<img src="./assets/nes_hopper.gif" width=60%>
+<br>
+<br>
+</div>
+
+```
+# at commit a0beb6124
+python -m bevodevo.train -a NESPopulation -n HopperBulletEnv-v0 -g 650 \
+-w 0 -pi MLPPolicy -p 320 -s 42
+```
