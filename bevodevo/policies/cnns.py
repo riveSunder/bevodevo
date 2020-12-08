@@ -44,9 +44,6 @@ class ImpalaCNNPolicy(nn.Module):
                 for elem in self.input_dim[0:2]]
         self.hid_input_dim = temp[0]*temp[1] * self.filters[-1]
         
-        self.num_params = 3*self.filters[0]*self.kern_size**2 \
-                + 2*self.filters[0]*self.filters[1]*3**2 \
-                + self.hid_input_dim * self.hid_dims[0] + self.hid_dims[-1] * self.action_dim 
 
         # discrete action space description
         self.discrete = True
@@ -55,6 +52,8 @@ class ImpalaCNNPolicy(nn.Module):
         # or can be combined (multilable), the latter uses sigmoid and the former softmax
 
         self.init_params()
+
+        self.num_params = self.get_params().shape[0]
 
         if args["params"] is not None:
             self.set_params(args["params"])
