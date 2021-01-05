@@ -282,6 +282,42 @@ class HebbianMLP(MLPPolicy):
         self.clear_nodes()
         self.clear_traces()
 
+class HebbianMetaMLP(HebbianMLP):
+
+    def __init__(self, args, discrete=False, use_grad=False):
+        super(HebbianMetaMLP, self).__init__(args, discrete, use_grad)
+        
+        self.plastic = True
+
+        self.set_traces()
+
+    def get_params(self):
+        params = np.array([])
+
+        if self.lr_layers is not None and self.plastic:
+            for param in self.lr_layers.named_parameters():
+                params = np.append(params, param[1].detach().numpy().ravel())
+
+        return params
+
+    def set_params(self, my_params):
+
+        param_start = 0
+        for name, param in self.lr_layers.named_parameters():
+
+            param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
+
+            param[:] = torch.nn.Parameter(torch.tensor(\
+                    my_params[param_start:param_stop].reshape(param.shape), \
+                    requires_grad=self.use_grad), \
+                    requires_grad=self.use_grad)
+
+    def reset(self):
+
+        self.init_params()
+        self.clear_nodes()
+        self.clear_traces()
+
 class ABCHebbianMLP(HebbianMLP):
 
     def __init__(self, args, discrete=False, use_grad=False, plastic=True):

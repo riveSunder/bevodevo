@@ -52,8 +52,8 @@ class ESPopulation:
             #self.env.render(mode="human")
             self.env = self.env_fn(self.env_args, render_mode="human")
 
-
         self.population[agent_idx].reset()
+
         for epd in range(epds):
 
             obs = self.env.reset()
@@ -81,6 +81,7 @@ class ESPopulation:
                 try:
                     obs, reward, done, info = self.env.step(action)
                 except:
+                    print("something went wrong?")
                     import pdb; pdb.set_trace()
 
                 if len(obs.shape) == 3:
