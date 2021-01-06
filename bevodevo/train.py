@@ -18,7 +18,7 @@ comm = MPI.COMM_WORLD
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
 from bevodevo.policies.mlps import MLPPolicy, CPPNMLPPolicy, CPPNHebbianMLP,\
-        HebbianMLP, ABCHebbianMLP, HebbianMetaMLP
+        HebbianMLP, ABCHebbianMLP, HebbianMetaMLP, ABCHebbianMetaMLP
 
 from bevodevo.algos.es import ESPopulation
 from bevodevo.algos.cmaes import CMAESPopulation
@@ -47,6 +47,9 @@ def train(argv):
     elif "abchebbianmlp" in argv.policy.lower():
         policy_fn = ABCHebbianMLP
         argv.policy = "ABCHebbianMLP"
+    elif "abchebbianmetamlp" in argv.policy.lower():
+        policy_fn = ABCHebbianMetaMLP
+        argv.policy = "ABCHebbianMetaMLP"
     elif "cppnhebbianmlp" in argv.policy.lower():
         policy_fn = CPPNHebbianMLP
         argv.policy = "CPPNHebbianMLP"
