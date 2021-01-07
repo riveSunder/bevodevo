@@ -288,8 +288,8 @@ class HebbianMetaMLP(HebbianMLP):
         super(HebbianMetaMLP, self).__init__(args, discrete, use_grad)
         
         self.plastic = True
+        self.reset()
 
-        self.set_traces()
 
     def get_params(self):
         params = np.array([])

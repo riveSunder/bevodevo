@@ -294,7 +294,7 @@ class ESPopulation:
         self.env_fn = gym.make #args.self.env_fn
         self.env_args = env_name #args.env_name
 
-        hid_dim = [32, 32] #args.hid_dims
+        hid_dim = 16 #[32, 32] #args.hid_dims
 
         seeds = args.seeds
         self.threshold = args.performance_threshold
@@ -497,7 +497,7 @@ class ESPopulation:
             obs_dim = obs_dim
         else:
             obs_dim = obs_dim[0]
-        hid_dim = 16 #args.hid_dim
+        hid_dim = 16 #[32,32] #args.hid_dim
 
         try:
             act_dim = self.env.action_space.n
