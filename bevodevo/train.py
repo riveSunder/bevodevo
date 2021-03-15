@@ -27,8 +27,6 @@ from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
-# experimental!
-import open_safety.envs
 
 #from bevodevo.algos.vpg import VanillaPolicyGradient
 #from bevodevo.algos.dqn import DQN
@@ -118,6 +116,14 @@ if __name__ == "__main__":
             help="seed for initializing pseudo-random number generator")
 
     args = parser.parse_args()
+
+    if "BalanceBot" in args.env_name \
+            or "Duck" in args.env_name \
+            or "Cube" in args.env_name \
+            or "Sphere" in args.enve_name:
+
+
+        import open_safety.envs
 
     if "-v" not in args.env_name:
         args.env_name += "-v0"
