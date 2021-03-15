@@ -535,13 +535,37 @@ class ESPopulation:
 
             comm.send([fitness_sublist, total_substeps], dest=0)
 
+class ConstrainedESPopulation(ESPopulation):
 
+    def __init__(self, \
+            policy_fn, \
+            discrete=False, \
+            num_workers=0, \
+            threshold=float("Inf")):
+        super(ConstrainedESPopulation, self).__init__(policy_fn, \
+                discrete=discrete,\
+                num_workers=num_workers,\
+                threshold=threshold)
+
+    #overload the following inheriting functions
+    def get_fitness(self, agent_idx, epds=4, render=False, view_elite=False):
+        pass
+
+    def update_pop(self, fitness_list):
+        pass
+
+
+    def mantle(self, args):
+        pass
+
+    def arm(self, args):
+        pass
 
 if __name__ == "__main__":
 
     # run tests
 
-    algo = ESPopulation
+    algo = ConstrainedESPopulation
     for policy_fn in [GatedRNNPolicy, MLPPolicy, ImpalaCNNPolicy]:
         temp = algo(policy_fn)
 
