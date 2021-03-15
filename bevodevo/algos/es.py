@@ -548,7 +548,7 @@ class ConstrainedESPopulation(ESPopulation):
                 threshold=threshold)
 
     #overload the following inheriting functions
-    def get_fitness(self, agent_idx, epds=4, render=False, view_elite=False):
+    def get_fitness(self, agent_idx, epds=8, render=False, view_elite=False):
         sum_rewards = []
         sum_costs = []
         total_steps = 0
@@ -789,6 +789,7 @@ class ConstrainedESPopulation(ESPopulation):
             results["min_fitness"] = []
             results["mean_fitness"] = []
             results["max_fitness"] = []
+            results["mean_cost"] = []
             results["std_dev_fitness"] = []
             results["args"] = str(args)
 
@@ -807,6 +808,8 @@ class ConstrainedESPopulation(ESPopulation):
                     print("gen {} mean fitness {:.2e}+/-{:.2e} max: {:.2e}, min: {:.2e}"\
                             .format(generation, my_mean, my_std_dev, \
                             my_max, my_min))
+                    print("cost mean: {:.2e}".format(my_cost_mean))
+
                     self.update_pop(fitness_list)
 
                 # send agents to arm processes
@@ -860,10 +863,15 @@ class ConstrainedESPopulation(ESPopulation):
 
                 self.total_env_interacts += total_steps
 
-                my_min = np.min(fitness_list)
-                my_max = np.max(fitness_list)
-                my_mean = np.mean(fitness_list)
-                my_std_dev = np.std(fitness_list)
+                my_cost_list = [elem[1] for elem in fitness_list]
+                my_fitness_list = [elem[0] for elem in fitness_list]
+
+                my_min = np.min(my_fitness_list)
+                my_max = np.max(my_fitness_list)
+                my_mean = np.mean(my_fitness_list)
+                my_std_dev = np.std(my_fitness_list)
+
+                my_cost_mean = np.mean(my_cost_list)
 
                 results["wall_time"].append(time.time() - t0)
                 results["total_env_interacts"].append(self.total_env_interacts)
@@ -871,6 +879,7 @@ class ConstrainedESPopulation(ESPopulation):
                 results["min_fitness"].append(my_min)
                 results["mean_fitness"].append(my_mean)
                 results["max_fitness"].append(my_max)
+                results["mean_cost"].append(my_cost_mean)
                 results["std_dev_fitness"].append(my_std_dev)
 
                 np.save("results/{}/progress_{}_s{}.npy".format(args.exp_name, exp_id, seed),\
