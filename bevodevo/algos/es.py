@@ -549,17 +549,87 @@ class ConstrainedESPopulation(ESPopulation):
 
     #overload the following inheriting functions
     def get_fitness(self, agent_idx, epds=4, render=False, view_elite=False):
-        pass
+        sum_rewards = []
+        sum_costs = []
+        total_steps = 0
+
+        if view_elite:
+            agent_idx = 0
+            #self.env.render(mode="human")
+            self.env = self.env_fn(self.env_args, render_mode="human")
+
+        self.population[agent_idx].reset()
+
+        for epd in range(epds):
+
+            obs = self.env.reset()
+            prev_obs = None
+            done = False
+            sum_reward = 0.0
+            sum_cost = 0.0
+            while not done and not(self.abort):
+                action = self.get_agent_action(obs, agent_idx)
+
+                if type(action) == np.ndarray: #len(action.shape) > 1:
+                    action = action[0]
+
+                if not(self.discrete):
+
+                    if np.isnan(action).any():
+                        print("warning, nan encountered in action")
+                        action = np.nan_to_num(action, 0.0)
+                        self.abort = True
+
+                    if (np.max(action) > self.env.action_space.high).any()\
+                            or (np.min(action) < self.env.action_space.low).any():
+                        action = np.clip(action, self.env.action_space.low, self.env.action_space.high)
+
+                prev_obs = obs
+                try:
+                    obs, reward, done, info = self.env.step(action)
+                except:
+                    print("something went wrong?")
+                    import pdb; pdb.set_trace()
+
+                if len(obs.shape) == 3:
+                    obs = obs / 255.
+                    if prev_obs is not None:
+                        obs = 1.5 * obs - 0.5 * prev_obs
+                else:
+                    obs = torch.Tensor(obs).unsqueeze(0)
+
+                sum_reward += reward
+                sum_cost += info["cost"]
+                total_steps += 1
+
+            sum_rewards.append(sum_reward)
+            sum_costs.append(sum_cost)
+
+        fitness = np.sum(sum_rewards) / epds
+        cost = np.sum(sum_costs) / epds
+
+        if(0):
+            if view_elite:
+                # this part doesn't work. (apparently both calls are deprecated)
+                self.env.close()
+                self.env.render(mode="close")
+
+        return fitness, total_steps, cost
 
     def update_pop(self, fitness_list):
         pass
 
+        #needs to sort by cost first before reward based fitness
 
     def mantle(self, args):
         pass
 
+        # needs to collect cost with fitness from arms and pass to `update_pop`
+
     def arm(self, args):
         pass
+
+        # needs to return fitness and cost lists
 
 if __name__ == "__main__":
 
