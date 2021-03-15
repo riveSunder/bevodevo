@@ -20,12 +20,13 @@ from bevodevo.policies.cnns import ImpalaCNNPolicy
 from bevodevo.policies.mlps import MLPPolicy, CPPNMLPPolicy, CPPNHebbianMLP,\
         HebbianMLP, ABCHebbianMLP, HebbianMetaMLP, ABCHebbianMetaMLP
 
-from bevodevo.algos.es import ESPopulation
+from bevodevo.algos.es import ESPopulation, ConstrainedESPopulation
 from bevodevo.algos.cmaes import CMAESPopulation
 from bevodevo.algos.pges import PGESPopulation
 from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
+
 
 #from bevodevo.algos.vpg import VanillaPolicyGradient
 #from bevodevo.algos.dqn import DQN
@@ -65,7 +66,9 @@ def train(argv):
     else:
         assert False, "policy not found, check spelling?"
 
-    if "ESPopulation" == argv.algorithm:
+    if "ConstrainedESPopulation" == argv.algorithm:
+        population_fn = ConstrainedESPopulation
+    elif "ESPopulation" == argv.algorithm:
         population_fn = ESPopulation
     elif "CMAESPopulation" == argv.algorithm:
         population_fn = CMAESPopulation
@@ -113,6 +116,14 @@ if __name__ == "__main__":
             help="seed for initializing pseudo-random number generator")
 
     args = parser.parse_args()
+
+    if "BalanceBot" in args.env_name \
+            or "Duck" in args.env_name \
+            or "Cube" in args.env_name \
+            or "Sphere" in args.enve_name:
+
+
+        import open_safety.envs
 
     if "-v" not in args.env_name:
         args.env_name += "-v0"
