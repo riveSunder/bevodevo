@@ -3,7 +3,6 @@ import sys
 
 import torch
 import numpy as np
-import time
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
@@ -31,7 +30,7 @@ class NESPopulation(ESPopulation):
 
     def get_advantage(self, sorted_fitness_list, advantage_mode=3):
         """
-            advantage_mode 0 - do nothing, returing sorted_fitness_list as advantage
+            advantage_mode 0 - do nothing, returning sorted_fitness_list as advantage
             advantage_mode 1 - normalize fitness list to have mean 0 and std. dev. of 1.0 
             advantage_mode 2 - shift all fitnesses to be positive and 
                 divide by max fitness score 
@@ -90,7 +89,7 @@ class NESPopulation(ESPopulation):
                 
                 gradient_log_probability += (1 / self.population_size) \
                         * (self.means - self.population[mm].get_params()) \
-                        / self.std_dev**2 #self.population[mm].var
+                        / self.std_dev**2
                         
                 gradient_fitness += advantage[mm] * gradient_log_probability
 
@@ -112,7 +111,7 @@ class NESPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj].set_params(self.champions[jj].get_params()) #[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj].get_params()) 
 
             my_start = self.elite_keep
         else:

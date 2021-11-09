@@ -27,13 +27,12 @@ from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
+# TODO: reminder to implement RL baselines 
 #from bevodevo.algos.vpg import VanillaPolicyGradient
 #from bevodevo.algos.dqn import DQN
 
 
 def train(argv):
-
-    # env_name, generations, population_size, 
     
     if "gatedrnn" in argv.policy.lower():
         policy_fn = SimpleGatedRNNPolicy

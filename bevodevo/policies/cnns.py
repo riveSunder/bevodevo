@@ -12,7 +12,6 @@ class ImpalaCNNPolicy(nn.Module):
     def __init__(self, args, discrete=True, filters=[16, 32, 32], \
             activations=[F.relu, F.relu, F.relu, F.relu], use_grad=False, init_params=True):
 
-        #agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, "dim_y": act_dim, "params": None} 
         super(ImpalaCNNPolicy, self).__init__()
 
         self.use_grad = use_grad
@@ -102,9 +101,6 @@ class ImpalaCNNPolicy(nn.Module):
 
         x = x.to(torch.float32)
 
-        #if True in [p.is_cuda for p in self.parameters()]:
-        #    x = x.to(torch.device("cuda"))
-
         if x.shape[-1] == 3:
             x = x.permute(2,0,1)
 
@@ -134,9 +130,6 @@ class ImpalaCNNPolicy(nn.Module):
         for param in self.named_parameters():
             params = np.append(params, param[1].detach().numpy().ravel())
 
-#        for param in self.top.named_parameters():
-#            params = np.append(params, param[1].detach().numpy().ravel())
-
         return params
     
 
@@ -150,12 +143,6 @@ class ImpalaCNNPolicy(nn.Module):
             param[:] = torch.nn.Parameter(torch.tensor(\
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
-#        for name, param in self.top.named_parameters():
-#
-#            param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
-#
-#            param[:] = torch.nn.Parameter(torch.Tensor(\
-#                    my_params[param_start:param_stop].reshape(param.shape)))
 
     def reset(self):
         pass

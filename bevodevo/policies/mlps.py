@@ -43,6 +43,7 @@ class MLPPolicy(nn.Module):
 
         if self.discrete:
             pass
+            # TODO: test/implement discrete action spaces
             #self.activations.append(lambda x: x)
         else:
             self.activations.append(nn.Tanh)
@@ -83,9 +84,6 @@ class MLPPolicy(nn.Module):
             x = torch.tensor(x)
 
         x = x.to(torch.float32)
-
-        #if True in [p.is_cuda for p in self.parameters()]:
-        #    x = x.to(torch.device("cuda"))
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
@@ -204,7 +202,7 @@ class HebbianMLP(MLPPolicy):
             x = x.unsqueeze(0)
 
         trace_count = 0
-        self.nodes[trace_count] = x.clone()#.squeeze()
+        self.nodes[trace_count] = x.clone()
 
         for name, module in self.layers.named_modules():
 
@@ -346,7 +344,7 @@ class ABCHebbianMLP(HebbianMLP):
 
         for params in [self.lr_layers.parameters(), self.a_layers.parameters(), \
                 self.b_layers.parameters(), self.c_layers.parameters()]:
-            for param in params: #self.lr_layers.parameters():
+            for param in params: 
                 param.requires_grad = self.use_grad
 
         self.num_params = self.get_params().shape[0]
@@ -449,6 +447,7 @@ class HebbianCAMLP(HebbianMLP):
     def __init__(self, args, discrete=False, use_grad=False, plastic=True):
         super(HebbianCAMLP, self).__init__(args, discrete, use_grad, plastic)
         
+        # Retaining these comments for now, as I might implement the described idea later.
         # two extra outputs for the number of update steps to use when applying CA rules 
         # and the probability of any given cell being changed. (Cells are weights in this policy)
         # self.action_dim += 2

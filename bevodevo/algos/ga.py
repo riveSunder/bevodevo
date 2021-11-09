@@ -1,10 +1,8 @@
 import os
 import sys
-import subprocess
 
 import torch
 import numpy as np
-import time
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy

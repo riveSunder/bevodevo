@@ -1,10 +1,8 @@
 import os
 import sys
-import subprocess
 
 import torch
 import numpy as np
-import time
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
@@ -64,9 +62,7 @@ class CMAESPopulation(ESPopulation):
 
         var = np.mean( (elite_params - self.distribution[0])**2, axis=0)
 
-        #covar[np.eye(self.population[0].num_params) == 1.0] = 0.0
-
-        covar_matrix = covar # + np.diag(var)
+        covar_matrix = covar 
 
         self.distribution = [params_mean, \
                 covar_matrix]

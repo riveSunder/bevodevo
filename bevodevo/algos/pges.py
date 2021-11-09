@@ -104,7 +104,7 @@ class PGESPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj].set_params(self.champions[jj].get_params()) #[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj].get_params())
 
             my_start = self.elite_keep
         else:

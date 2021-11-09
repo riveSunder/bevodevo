@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
 
-#from bevodevo.policies.rnns import GatedRNNPolicy
+from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
 from bevodevo.policies.mlps import MLPPolicy
 
@@ -26,12 +26,8 @@ from bevodevo.algos.pges import PGESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
-#from bevodevo.algos.dqn import DQN
 
 def enjoy(argv):
-
-    # env_name, generations, population_size, 
-    
 
     if "elite_pop" not in argv.file_path and ".pt" not in argv.file_path:
         my_dir = os.listdir(argv.file_path)

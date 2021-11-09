@@ -1,4 +1,4 @@
-import sys
+mport sys
 import os
 import subprocess
 import copy
@@ -47,7 +47,7 @@ class ESPopulation:
 
         if view_elite:
             agent_idx = 0
-            #self.env.render(mode="human")
+            
             self.env = self.env_fn(self.env_args, render_mode="human")
 
 
@@ -61,7 +61,7 @@ class ESPopulation:
             while not done and not(self.abort):
                 action = self.get_agent_action(obs, agent_idx)
 
-                if type(action) == np.ndarray: #len(action.shape) > 1:
+                if type(action) == np.ndarray: 
                     action = action[0]
 
                 if not(self.discrete):
@@ -288,10 +288,10 @@ class ESPopulation:
         disp_every = max(max_generations // 100, 1)
         save_every = max(max_generations // 20, 1)
 
-        self.env_fn = gym.make #args.self.env_fn
-        self.env_args = env_name #args.env_name
+        self.env_fn = gym.make 
+        self.env_args = env_name
 
-        hid_dim = [32, 32] #args.hid_dims
+        hid_dim = [32, 32] #TODO: allow hid_dims to be user-defined args.hid_dims
 
         seeds = args.seeds
         self.threshold = args.performance_threshold
@@ -394,7 +394,6 @@ class ESPopulation:
                         params_list = [my_agent.get_params() \
                                 for my_agent in self.population[batch_start:batch_end]]
 
-                        #print("send params of len {} to worker {}".format(len(params_list), cc))
                         comm.send(params_list, dest=cc)
 
 
@@ -416,7 +415,6 @@ class ESPopulation:
                         fit = comm.recv(source=cc)
                         fitness_list.extend(fit[0])
                         
-                        #print("worker {} returns fitness list of len {}".format(cc, len(fit[0])))
                         total_steps += fit[1]
 
                 self.total_env_interacts += total_steps
@@ -485,8 +483,8 @@ class ESPopulation:
  
         env_name = args.env_name 
         
-        self.env_fn = gym.make #args.env_fn
-        self.env_args = env_name #args.env_name
+        self.env_fn = gym.make 
+        self.env_args = env_name 
         self.env = self.env_fn(self.env_args)
 
         obs_dim = self.env.observation_space.shape
@@ -494,7 +492,7 @@ class ESPopulation:
             obs_dim = obs_dim
         else:
             obs_dim = obs_dim[0]
-        hid_dim = 16 #args.hid_dim
+        hid_dim = 16 # TODO: see related note in mantle. args.hid_dim
 
         try:
             act_dim = self.env.action_space.n
