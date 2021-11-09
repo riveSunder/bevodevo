@@ -60,7 +60,7 @@ class MLPPolicy(nn.Module):
                 ("activation_0", self.activations[0]())\
                 ]))
 
-        for jj in range(1, len(self.hid_dims)-1):
+        for jj in range(1, len(self.hid_dims)):
             self.layers.add_module("layer{}".format(jj),\
                     nn.Linear(self.hid_dims[jj], self.hid_dims[jj+1], bias=self.use_bias))
             self.layers.add_module("activation{}".format(jj), self.activations[jj]())
@@ -442,6 +442,127 @@ class ABCHebbianMLP(HebbianMLP):
                         requires_grad=self.use_grad)
 
 
+class HebbianCAMLP2(HebbianMLP):
+
+    def __init__(self, args, discrete=False, use_grad=False, plastic=True):
+        super(HebbianCAMLP, self).__init__(args, discrete, use_grad, plastic)
+        
+        # Retaining these comments for now, as I might implement the described idea later.
+        # two extra outputs for the number of update steps to use when applying CA rules 
+        # and the probability of any given cell being changed. (Cells are weights in this policy)
+        # self.action_dim += 2
+
+        self.ca_steps = 4
+        
+    def init_traces(self):
+
+        self.eligibility_layers = [torch.zeros(self.hid_dims[0], self.input_dim)]
+
+        for jj in range(len(self.hid_dims)-1):
+
+            self.eligibility_layers.append(torch.zeros(self.hid_dims[jj+1], self.hid_dims[jj]))
+
+        self.eligibility_layers.append(torch.zeros(self.action_dim, self.hid_dims[-1]))
+
+        self.init_pgen()
+
+    def init_pgen(self):
+        # Policy generating network is comprised of a 2 layer MLP, but implemented as convolutional layers 
+
+        self.pgen = []
+
+        for mm in range(len(self.hid_dims)+2):
+            self.pgen.append(nn.Sequential(\
+                    nn.Conv2d(16,16,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh(),\
+                    nn.Conv2d(16,16,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh()))
+
+    def neighborhood(self, state_grid):
+
+        my_dim = state_grid.shape[1]
+        moore = torch.tensor(np.array([[[[1, 1, 1], [1, 0, 1], [1, 1, 1]]]]),\
+                dtype=torch.float64)
+        sobel_y = torch.tensor(np.array([[[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]]]),\
+                dtype=torch.float64)
+        sobel_x = torch.tensor(np.array([[[[-1, 2, -1], [0, 0, 0], [1, 2, 1]]]]), \
+                dtype=torch.float64)
+
+        moore /= torch.sum(moore)
+
+        sobel_x = sobel_x * torch.ones((state_grid.shape[1], 1, 3,3))
+        sobel_y = sobel_y * torch.ones((state_grid.shape[1], 1, 3,3))
+        sobel_x = sobel_x.to(device)
+        sobel_y = sobel_y.to(device)
+
+        moore = moore * torch.ones((state_grid.shape[1], 1, 3,3))
+        moore = moore.to(device)
+
+        grad_x = F.conv2d(state_grid, sobel_x, padding=1, groups=my_dim)
+        grad_y = F.conv2d(state_grid, sobel_y, padding=1, groups=my_dim)
+
+        moore_neighborhood = F.conv2d(state_grid, moore, padding=1, groups=my_dim)
+
+        perception = torch.cat([state_grid, moore_neighborhood, grad_x, grad_y], axis=1)
+
+        return perception
+
+    def update(self):
+
+        num_layers = len(list(self.layers.named_parameters()))
+        layer_count = 0
+
+        dim_ch = 4
+
+        for param in list(self.layers.named_parameters()):
+
+            layer_dim_x, layer_dim_y = param[1].shape[1], param[1].shape[0]
+            state_grid = torch.ones(1, dim_ch, layer_dim_y, layer_dim_x, requires_grad=False)
+
+            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count+1].T, self.nodes[layer_count]) 
+            self.eligibility_layers[layer_count] = torch.clamp(self.eligibility_layers[layer_count], min=self.e_min, max=self.e_max)
+
+            state_grid[0,0,:,:] = param[1]
+            state_grid[0,1,:,:] = self.eligibility_layers[layer_count]
+            state_grid[0,2,:,:] *= self.nodes[layer_count]
+            state_grid[0,3,:,:] *= self.nodes[layer_count + 1].T
+
+            for jj in range(self.ca_steps):
+                perception = self.neighborhood(state_grid)
+                state_grid = self.pgen[layer_count](perception)
+
+
+            param[1][:,:] = state_grid[0, 0, :, :].squeeze()
+
+            layer_count += 1
+
+    def get_params(self):
+        params = np.array([])
+
+        for param in self.layers.named_parameters():
+            params = np.append(params, param[1].detach().numpy().ravel())
+
+        if self.lr_layers is not None and self.plastic:
+            for ll in range(len(self.pgen)):
+                for param in self.pgen[ll].named_parameters():
+                    params = np.append(params, param[1].detach().numpy().ravel())
+
+        return params
+
+    def set_params(self, my_params):
+
+        param_start = 0
+
+        for model in self.pgen:
+            for name, param in model.named_parameters():
+                
+                param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
+
+                param[:] = torch.nn.Parameter(torch.tensor(\
+                        my_params[param_start:param_stop].reshape(param.shape),\
+                        requires_grad=self.use_grad), \
+                        requires_grad=self.use_grad)
+
 class HebbianCAMLP(HebbianMLP):
 
     def __init__(self, args, discrete=False, use_grad=False, plastic=True):
@@ -452,6 +573,7 @@ class HebbianCAMLP(HebbianMLP):
         # and the probability of any given cell being changed. (Cells are weights in this policy)
         # self.action_dim += 2
 
+        self.ca_steps = 8
         
     def init_traces(self):
 
@@ -474,7 +596,7 @@ class HebbianCAMLP(HebbianMLP):
             self.pgen.append(nn.Sequential(\
                     nn.Conv2d(4,16,1, stride=1, padding=0, bias=False),\
                     nn.Tanh(),\
-                    nn.Conv2d(16,1,1, stride=1, padding=0, bias=False),\
+                    nn.Conv2d(16,4,1, stride=1, padding=0, bias=False),\
                     nn.Tanh()))
 
     def update(self):
@@ -496,8 +618,8 @@ class HebbianCAMLP(HebbianMLP):
             state_grid[0,1,:,:] = self.eligibility_layers[layer_count]
             state_grid[0,2,:,:] *= self.nodes[layer_count]
             state_grid[0,3,:,:] *= self.nodes[layer_count + 1].T
-
-            param[1][:,:] = self.pgen[layer_count](state_grid).squeeze()
+            
+            param[1][:,:] = self.pgen[layer_count](state_grid)[0,0]#.squeeze()
 
             layer_count += 1
 

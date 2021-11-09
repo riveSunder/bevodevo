@@ -1,4 +1,4 @@
-mport sys
+import sys
 import os
 import subprocess
 import copy
@@ -291,7 +291,7 @@ class ESPopulation:
         self.env_fn = gym.make 
         self.env_args = env_name
 
-        hid_dim = [32, 32] #TODO: allow hid_dims to be user-defined args.hid_dims
+        hid_dim = 16 #[32, 32] #TODO: allow hid_dims to be user-defined args.hid_dims
 
         seeds = args.seeds
         self.threshold = args.performance_threshold
