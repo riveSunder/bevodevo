@@ -177,7 +177,7 @@ class ESPopulation:
 
         if self.elitism:
             if self.champions is None:
-                self.champions = copy.deepcopy(elite_pop)
+                self.champions = [p.get_params() for p in elite_pop] #copy.deepcopy(elite_pop)
                 self.leaderboard = copy.deepcopy(elite_fitness)
             else:
                 sorted_indices = list(np.argsort(fitness_list))
@@ -189,8 +189,10 @@ class ESPopulation:
 
                         if sorted_fitness[oo] >= self.leaderboard[pp]:
                             self.leaderboard.insert(pp, sorted_fitness[oo])
-                            self.champions.insert(pp, self.population[sorted_indices[oo]])
+                            self.champions.insert(pp, \
+                                    self.population[sorted_indices[oo]].get_params())
                             sorted_fitness[oo] = -float("Inf")
+
 
             self.leaderboard = self.leaderboard[:self.elite_keep]
             self.champions = self.champions[:self.elite_keep]
@@ -217,7 +219,7 @@ class ESPopulation:
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj])
 
             my_start = self.elite_keep
         else:
@@ -227,6 +229,7 @@ class ESPopulation:
             agent_params = params_mean + \
                     np.random.randn(params_mean.shape[0]) \
                     * np.sqrt(self.population[kk].var)
+
 
             self.population[kk].set_params(agent_params)
 
@@ -327,8 +330,8 @@ class ESPopulation:
             my_seed = seed
             np.random.seed(my_seed)
             torch.random.manual_seed(my_seed)
-
-            self.population = [self.policy_fn(agent_args, discrete=self.discrete)\
+    
+            self.population = [self.policy_fn(**agent_args)\
                     for ii in range(self.population_size)]
 
             self.total_env_interacts = 0
@@ -458,7 +461,7 @@ class ESPopulation:
 
                         elite_params = {}
                         for ii, elite in enumerate(self.champions):
-                            elite_params["elite_{}".format(ii)] = elite.get_params()
+                            elite_params["elite_{}".format(ii)] = elite #= elite.get_params()
                     else:
                         elite_params = {}
                         for ii, elite in enumerate(self.elite_pop):
@@ -516,7 +519,7 @@ class ESPopulation:
 
                 agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
                         "dim_y": act_dim, "params": None} 
-                self.population.append(self.policy_fn(agent_args, discrete=self.discrete))
+                self.population.append(self.policy_fn(**agent_args))
                 self.population[-1].set_params(params_list[ii])
             
 
