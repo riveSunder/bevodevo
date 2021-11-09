@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-from collections import OrderedDict
 from functools import reduce
 
 import numpy as np
@@ -7,9 +5,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-import gym
-import matplotlib.pyplot as plt
 
 class Params():
     """

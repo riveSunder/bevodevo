@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import os
 import sys
 import subprocess
@@ -6,14 +5,6 @@ import subprocess
 import torch
 import numpy as np
 import time
-
-import gym
-import pybullet
-import pybullet_envs
-
-
-from mpi4py import MPI
-comm = MPI.COMM_WORLD
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
