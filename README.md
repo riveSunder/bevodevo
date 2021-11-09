@@ -60,7 +60,7 @@ python bevodevo/plot.py -f results/test_exp/
 or watch the agent deal with the environment 
 
 ```
-python bevodevo/enjoy.py -n InvertedPendulumSwingupBulletEnv-v0 -fp ./results/test_exp/
+python bevodevo/enjoy.py -n InvertedPendulumSwingupBulletEnv-v0 -f ./results/test_exp/
 ```
 
 <div align="center">

@@ -120,7 +120,7 @@ if __name__ == "__main__":
     if "BalanceBot" in args.env_name \
             or "Duck" in args.env_name \
             or "Cube" in args.env_name \
-            or "Sphere" in args.enve_name:
+            or "Sphere" in args.env_name:
 
 
         import open_safety.envs
