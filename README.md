@@ -22,7 +22,7 @@ I use the following commands to create and activate a BevoDevo virtual environme
 
 ```
 virtualenv bevodevo_env --python=python3
-source bevodevoup_env/bin/activate
+source bevodevo_env/bin/activate
 ```
 
 Evolutionary algorithms tend to be "[embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel)" BevoDevo uses [OpenMPI](https://www.open-mpi.org/) and `mpi4py` for message passing between multiple threads. To install OpenMPI on Ubuntu: 
