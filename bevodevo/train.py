@@ -35,8 +35,8 @@ from bevodevo.algos.random_search import RandomSearch
 def train(argv):
     
     if "gatedrnn" in argv.policy.lower():
-        policy_fn = SimpleGatedRNNPolicy
-        argv.policy = "SimpleGatedRNNPolicy" 
+        policy_fn = GatedRNNPolicy
+        argv.policy = "GatedRNNPolicy" 
     elif "impala" in argv.policy.lower():
         policy_fn = ImpalaCNNPolicy
         argv.policy = "ImpalaCNNPolicy"
