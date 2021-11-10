@@ -9,27 +9,28 @@ import torch.nn.functional as F
 
 class ImpalaCNNPolicy(nn.Module):
 
-    def __init__(self, args, discrete=True, filters=[16, 32, 32], \
-            activations=[F.relu, F.relu, F.relu, F.relu], use_grad=False, init_params=True):
-
+    def __init__(self, **kwargs):
         super(ImpalaCNNPolicy, self).__init__()
 
-        self.use_grad = use_grad
-        self.input_dim = args["dim_x"] 
-        self.action_dim = args["dim_y"]
-        self.hid_dims = args["dim_h"]
-        self.hid_dims = self.hid_dims if type(self.hid_dims) is list else [self.hid_dims]
+        self.use_grad = kwargs["use_grad"] if "use_grad" in kwargs.keys() else False
+        self.input_dim = kwargs["dim_x"] if "dim_x" in kwargs.keys() else 3 
+        self.action_dim = kwargs["dim_y"] if "dim_y" in kwargs.keys() else 1
+
+
+        self.filters = kwargs["filters"] if "filters" in kwargs.keys() else [16, 32, 32]
+
+        self.activations = kwargs["activations"] if "activations" in kwargs.keys() \
+                else [F.relu, F.relu, F.relu, F.relu]
+                
 
         # TODO: allow adjustable layers and parameter dims
-        if type(args["dim_x"]) == list:
+        if type(self.input_dim) == list:
             assert len(self.input_dim) >= 3, "cnn expects 3D input dims"
-        elif type(args["dim_x"]) == int:
+        elif type(self.input_dim) == int:
             print("warning, cnns expect 3D input dims. Assuming height, width = 64, 64")
             self.input_dim = [64, 64, args["dim_x"]]
 
 
-        self.filters = filters
-        self.activations = activations
         self.use_bias = True
         self.var = 0.1**2
         self.kern_size = 3
@@ -39,33 +40,37 @@ class ImpalaCNNPolicy(nn.Module):
                 for elem in self.input_dim[0:2]]
         self.hid_input_dim = temp[0]*temp[1] * self.filters[-1]
         
-        self.num_params = 3*self.filters[0]*self.kern_size**2 \
-                + 2*self.filters[0]*self.filters[1]*3**2 \
-                + self.hid_input_dim * self.hid_dims[0] + self.hid_dims[-1] * self.action_dim 
+        
 
         # discrete action space description
-        self.discrete = True
+        self.discrete = kwargs["discrete"] if "discrete" in kwargs.keys() else False
         self.multilabel = False 
         # discrete output classes are either mutually exclusive (multiclass)
-        # or can be combined (multilable), the latter uses sigmoid and the former softmax
+        # or can be combined (multilablel), the latter uses sigmoid and the former softmax
 
         self.init_params()
 
-        if args["params"] is not None:
-            self.set_params(args["params"])
+        if "params" in kwargs.keys() and kwargs["params"] is not None: 
+            self.set_params(kwargs["params"])
+
+        self.num_params = self.get_params().shape
+        
 
     def init_params(self):
         # set up feature extractor
         self.extractor = torch.nn.Sequential(OrderedDict([\
-                ("conv_layer0", torch.nn.Conv2d(3, self.filters[0], 3, stride=2, padding=1, bias=False)),\
+                ("conv_layer0", torch.nn.Conv2d(3, self.filters[0], 3, \
+                stride=2, padding=1, bias=False)),\
                 ("conv_activation0", torch.nn.ReLU(True))\
                 ]))
 
         for ii in range(1,len(self.filters)):
 
-            self.extractor.add_module("layer{}".format(ii), torch.nn.Sequential(OrderedDict([\
+            self.extractor.add_module("layer{}".format(ii), \
+                    torch.nn.Sequential(OrderedDict([\
                     ("conv_layer{}".format(ii), \
-                    torch.nn.Conv2d(self.filters[ii-1], self.filters[ii], 3, stride=2, padding=1, bias=False)),\
+                    torch.nn.Conv2d(self.filters[ii-1], self.filters[ii], \
+                    3, stride=2, padding=1, bias=False)),\
                     ("conv_activation{}".format(ii), torch.nn.ReLU(True))\
                     ])))
 
@@ -73,9 +78,9 @@ class ImpalaCNNPolicy(nn.Module):
         self.top = torch.nn.Sequential(OrderedDict([\
                 ("flatten", torch.nn.Flatten()), \
                 ("layer0", \
-                torch.nn.Linear(self.hid_input_dim, self.hid_dims[0], bias=False)),\
+                torch.nn.Linear(self.hid_input_dim, self.filters[0], bias=False)),\
                 ("activation0", torch.nn.ReLU(True)), \
-                ("layer1", torch.nn.Linear(self.hid_dims[0], self.action_dim, bias=False))\
+                ("layer1", torch.nn.Linear(self.filters[0], self.action_dim, bias=False))\
                 ]))
 
         if self.discrete:
@@ -120,7 +125,10 @@ class ImpalaCNNPolicy(nn.Module):
 
         logits = self.forward(x)
 
-        action = torch.argmax(logits, dim=-1).detach().numpy()
+        if self.discrete:
+            action = torch.argmax(logits, dim=-1).detach().numpy()
+        else:
+            action = logits.detach().numpy()
 
         return action
 

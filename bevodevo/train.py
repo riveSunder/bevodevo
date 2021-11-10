@@ -42,7 +42,7 @@ def train(argv):
         argv.policy = "ImpalaCNNPolicy"
     elif "cppnmlp" in argv.policy.lower():
         policy_fn = CPPNMLPPolicy
-        arg.policy = "CPPNMLPPolicy"
+        argv.policy = "CPPNMLPPolicy"
     elif "abchebbianmlp" in argv.policy.lower():
         policy_fn = ABCHebbianMLP
         argv.policy = "ABCHebbianMLP"
