@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-from collections import OrderedDict
 from functools import reduce
 
 import numpy as np
@@ -8,23 +6,25 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import gym
-import matplotlib.pyplot as plt
-
 class Params():
     """
     policy which outputs the policy parameters directly, i.e. for direct optimization
     """
 
-    def __init__(self, dim_in=7, dim_act=6):
+    def __init__(self, **kwargs): 
         
-        self.dim_act = dim_act
+        self.dim_act = kwargs["dim_act"] if "dim_act" in kwargs.keys() else 6
+        
+        self.means = np.zeros((self.dim_act))
+        self.standard_deviation = np.array([0.33] * self.dim_act)
 
         self.init_params()
 
     def init_params(self):
 
-        self.params = np.random.randn(self.dim_act)/3 -  1.75
+        self.params = self.standard_deviation * np.random.randn(self.dim_act) \
+                + self.means
+
         self.num_params = self.dim_act
 
     def forward(self, obs):
@@ -40,7 +40,6 @@ class Params():
 
     def reset(self):
         pass
-
 
 if __name__ == "__main__":
 

@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from collections import OrderedDict
 from functools import reduce
 
@@ -8,25 +7,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import gym
-import matplotlib.pyplot as plt
-
 from bevodevo.policies.base import Policy
 
 class MLPPolicy(nn.Module):
 
-    def __init__(self, args, discrete=False, use_grad=False):
+    def __init__(self, **kwargs):
         super(MLPPolicy, self).__init__()
 
-        self.use_grad = use_grad
+        self.use_grad = kwargs["use_grad"] if "use_grad" in kwargs.keys() else False
 
         # architecture params
-        self.input_dim = args["dim_x"]
-        self.action_dim = args["dim_y"]
-        self.hid_dims = args["dim_h"]
+        self.input_dim = kwargs["dim_x"] if "dim_x" in kwargs.keys() else 5
+        self.action_dim = kwargs["dim_y"] if "dim_y" in kwargs.keys() else 1
+        self.hid_dims = kwargs["dim_h"] if "dim_h" in kwargs.keys() else 16
         self.hid_dims = [self.hid_dims] if type(self.hid_dims) is not list else self.hid_dims
-        self.activations = nn.ReLU #args["activations"]
-        self.discrete = discrete
+        self.activations = kwargs["activations"] \
+                if "activations" in kwargs.keys() else nn.ReLU
+        self.discrete = kwargs["discrete"] if "discrete" in kwargs.keys() else False
         self.use_bias = False
         self.var = 1.e-2
 
@@ -47,14 +44,15 @@ class MLPPolicy(nn.Module):
 
         if self.discrete:
             pass
+            # TODO: test/implement discrete action spaces
             #self.activations.append(lambda x: x)
         else:
             self.activations.append(nn.Tanh)
 
         self.init_params()
 
-        if args["params"] is not None: 
-            self.set_params(args["params"])
+        if kwargs["params"] is not None: 
+            self.set_params(kwargs["params"])
 
     def init_params(self):
 
@@ -63,7 +61,7 @@ class MLPPolicy(nn.Module):
                 ("activation_0", self.activations[0]())\
                 ]))
 
-        for jj in range(1, len(self.hid_dims)-1):
+        for jj in range(1, len(self.hid_dims)):
             self.layers.add_module("layer{}".format(jj),\
                     nn.Linear(self.hid_dims[jj], self.hid_dims[jj+1], bias=self.use_bias))
             self.layers.add_module("activation{}".format(jj), self.activations[jj]())
@@ -87,9 +85,6 @@ class MLPPolicy(nn.Module):
             x = torch.tensor(x)
 
         x = x.to(torch.float32)
-
-        #if True in [p.is_cuda for p in self.parameters()]:
-        #    x = x.to(torch.device("cuda"))
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
@@ -132,26 +127,23 @@ class MLPPolicy(nn.Module):
 
 class HebbianMLP(MLPPolicy):
 
-    def __init__(self, args, discrete=False, use_grad=False, plastic=True):
-        self.plastic = plastic
+    def __init__(self, **kwargs):
+        self.plastic = kwargs["plastic"] if "plastic" in kwargs.keys() else True
         self.lr_layers = None
         self.e_min = -1.
         self.e_max = 1.
-        super(HebbianMLP, self).__init__(args, discrete, use_grad)
-        self.set_traces()
-
-    def set_traces(self):
         
-        self.dim_list = [self.input_dim]
-        self.dim_list.extend(self.hid_dims)
-        self.dim_list.append(self.action_dim)
-        
+        super(HebbianMLP, self).__init__(**kwargs)
         if self.plastic:
             self.init_traces()
         else:
             self.clear_nodes()
 
     def init_traces(self):
+
+        self.dim_list = [self.input_dim]
+        self.dim_list.extend(self.hid_dims)
+        self.dim_list.append(self.action_dim)
 
         # clear node activations, start at 0 everywhere
         self.clear_nodes()
@@ -208,7 +200,7 @@ class HebbianMLP(MLPPolicy):
             x = x.unsqueeze(0)
 
         trace_count = 0
-        self.nodes[trace_count] = x.clone()#.squeeze()
+        self.nodes[trace_count] = x.clone()
 
         for name, module in self.layers.named_modules():
 
@@ -230,11 +222,13 @@ class HebbianMLP(MLPPolicy):
         num_layers = len(list(self.layers.named_parameters()))
         layer_count = 0
 
-        for lr_param, param in zip(list(self.lr_layers.named_parameters()), list(self.layers.named_parameters())):
+        for lr_param, param in zip(list(self.lr_layers.named_parameters()), \
+                list(self.layers.named_parameters())):
 
             layer_dim_x, layer_dim_y = param[1].shape[1], param[1].shape[0]
 
-            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count].T, self.nodes[layer_count+1]) 
+            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count].T, \
+                    self.nodes[layer_count+1]) 
 
             self.eligibility_layers[layer_count] = torch.clamp(self.eligibility_layers[layer_count], min=self.e_min, max=self.e_max)
 
@@ -282,48 +276,11 @@ class HebbianMLP(MLPPolicy):
         self.clear_nodes()
         self.clear_traces()
 
-class HebbianMetaMLP(HebbianMLP):
-
-    def __init__(self, args, discrete=False, use_grad=False):
-        super(HebbianMetaMLP, self).__init__(args, discrete, use_grad)
-        
-        self.plastic = True
-        self.reset()
-
-
-    def get_params(self):
-        params = np.array([])
-
-        if self.lr_layers is not None and self.plastic:
-            for param in self.lr_layers.named_parameters():
-                params = np.append(params, param[1].detach().numpy().ravel())
-
-        return params
-
-    def set_params(self, my_params):
-
-        param_start = 0
-        for name, param in self.lr_layers.named_parameters():
-
-            param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
-
-            param[:] = torch.nn.Parameter(torch.tensor(\
-                    my_params[param_start:param_stop].reshape(param.shape), \
-                    requires_grad=self.use_grad), \
-                    requires_grad=self.use_grad)
-
-    def reset(self):
-
-        self.init_params()
-        self.clear_nodes()
-        self.clear_traces()
-
-
 class ABCHebbianMLP(HebbianMLP):
 
-    def __init__(self, args, discrete=False, use_grad=False, plastic=True):
+    def __init__(self, **kwargs):
 
-        super(ABCHebbianMLP, self).__init__(args, discrete, use_grad, plastic)
+        super(ABCHebbianMLP, self).__init__(**kwargs)
 
     def init_traces(self):
 
@@ -387,7 +344,7 @@ class ABCHebbianMLP(HebbianMLP):
 
         for params in [self.lr_layers.parameters(), self.a_layers.parameters(), \
                 self.b_layers.parameters(), self.c_layers.parameters()]:
-            for param in params: #self.lr_layers.parameters():
+            for param in params: 
                 param.requires_grad = self.use_grad
 
         self.num_params = self.get_params().shape[0]
@@ -459,8 +416,7 @@ class ABCHebbianMLP(HebbianMLP):
                 param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
 
                 param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape),\
-                        requires_grad=self.use_grad), \
+                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                         requires_grad=self.use_grad)
 
             for name, param in self.a_layers.named_parameters():
@@ -468,48 +424,125 @@ class ABCHebbianMLP(HebbianMLP):
                 param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
 
                 param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
+                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                         requires_grad=self.use_grad)
-
             for name, param in self.b_layers.named_parameters():
 
                 param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
 
                 param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
+                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                         requires_grad=self.use_grad)
             for name, param in self.c_layers.named_parameters():
 
                 param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
 
                 param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
+                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                         requires_grad=self.use_grad)
 
-class ABCHebbianMetaMLP(ABCHebbianMLP):
 
-    def __init__(self, args, discrete=False, use_grad=False):
-        super(ABCHebbianMetaMLP, self).__init__(args, discrete, use_grad)
+class HebbianCAMLP(HebbianMLP):
 
-        self.plastic = True
+    def __init__(self, **kwargs):
+        super(HebbianCAMLP, self).__init__(**kwargs)
+        self.init_pgen()
+        
+        # Retaining these comments for now, as I might implement the described idea later.
+        # two extra outputs for the number of update steps to use when applying CA rules 
+        # and the probability of any given cell being changed. (Cells are weights in this policy)
+        # self.action_dim += 2
 
-        self.set_traces()
+        self.init_traces()
+        self.ca_steps = 8
+        
+    def init_params(self):
+
+        self.layers = nn.Sequential(OrderedDict([\
+                ("layer0", nn.Linear(self.input_dim, self.hid_dims[0], bias=self.use_bias)),\
+                ("activation_0", self.activations[0]())\
+                ]))
+
+        for jj in range(1, len(self.hid_dims)):
+            self.layers.add_module("layer{}".format(jj),\
+                    nn.Linear(self.hid_dims[jj], self.hid_dims[jj+1], bias=self.use_bias))
+            self.layers.add_module("activation{}".format(jj), self.activations[jj]())
+
+        self.layers.add_module("output_layer",\
+                nn.Linear(self.hid_dims[-1], self.action_dim, bias=self.use_bias))
+        if self.discrete:
+            pass
+        else:
+            self.layers.add_module("output_activation",\
+                    self.activations[-1]())
+
+        for param in self.layers.parameters():
+            param.requires_grad = self.use_grad
+
+        self.init_pgen()
+        self.num_params = self.get_params().shape[0]
+
+    def init_traces(self):
+
+        self.dim_list = [self.input_dim]
+        self.dim_list.extend(self.hid_dims)
+        self.dim_list.append(self.action_dim)
+        self.eligibility_layers = [torch.zeros(self.hid_dims[0], self.input_dim)]
+
+        for jj in range(len(self.hid_dims)-1):
+
+            self.eligibility_layers.append(torch.zeros(self.hid_dims[jj+1], self.hid_dims[jj]))
+
+        self.eligibility_layers.append(torch.zeros(self.action_dim, self.hid_dims[-1]))
+
+        self.init_pgen()
+
+    def init_pgen(self):
+        # Policy generating network is comprised of a 2 layer MLP, but implemented as convolutional layers 
+
+        self.pgen = []
+
+        for mm in range(len(self.hid_dims)+2):
+            self.pgen.append(nn.Sequential(\
+                    nn.Conv2d(4,16,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh(),\
+                    nn.Conv2d(16,4,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh()))
+
+    def update(self):
+
+        num_layers = len(list(self.layers.named_parameters()))
+        layer_count = 0
+
+        dim_ch = 4
+
+        for param in list(self.layers.named_parameters()):
+
+            layer_dim_x, layer_dim_y = param[1].shape[1], param[1].shape[0]
+            state_grid = torch.ones(1, dim_ch, layer_dim_y, layer_dim_x, requires_grad=False)
+
+            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count+1].T, self.nodes[layer_count]) 
+            self.eligibility_layers[layer_count] = torch.clamp(self.eligibility_layers[layer_count], min=self.e_min, max=self.e_max)
+
+            state_grid[0,0,:,:] = param[1]
+            state_grid[0,1,:,:] = self.eligibility_layers[layer_count]
+            state_grid[0,2,:,:] *= self.nodes[layer_count]
+            state_grid[0,3,:,:] *= self.nodes[layer_count + 1].T
+            
+            param[1][:,:] = self.pgen[layer_count](state_grid)[0,0]#.squeeze()
+
+            layer_count += 1
 
     def get_params(self):
         params = np.array([])
 
-        if self.lr_layers is not None and self.plastic:
-            for param in self.lr_layers.named_parameters():
-                params = np.append(params, param[1].detach().numpy().ravel())
-            for param in self.a_layers.named_parameters():
-                params = np.append(params, param[1].detach().numpy().ravel())
-            for param in self.b_layers.named_parameters():
-                params = np.append(params, param[1].detach().numpy().ravel())
-            for param in self.c_layers.named_parameters():
-                params = np.append(params, param[1].detach().numpy().ravel())
+        #for param in self.layers.named_parameters():
+        #    params = np.append(params, param[1].detach().numpy().ravel())
+
+        if self.plastic:
+            for ll in range(len(self.pgen)):
+                for param in self.pgen[ll].named_parameters():
+                    params = np.append(params, param[1].detach().numpy().ravel())
 
         return params
 
@@ -517,56 +550,106 @@ class ABCHebbianMetaMLP(ABCHebbianMLP):
 
         param_start = 0
 
-        if self.plastic:
-            for name, param in self.lr_layers.named_parameters():
-
+        for model in self.pgen:
+            for name, param in model.named_parameters():
+                
                 param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
 
                 param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape),\
-                        requires_grad=self.use_grad), \
+                        my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                         requires_grad=self.use_grad)
 
-            for name, param in self.a_layers.named_parameters():
+class HebbianCAMLP2(HebbianCAMLP):
 
-                param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
+    def __init__(self, **kwargs):
+        super(HebbianCAMLP2, self).__init__(**kwargs)
+        
+        # Retaining these comments for now, as I might implement the described idea later.
+        # two extra outputs for the number of update steps to use when applying CA rules 
+        # and the probability of any given cell being changed. (Cells are weights in this policy)
+        # self.action_dim += 2
 
-                param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
-                        requires_grad=self.use_grad)
+        self.ca_steps = 4
+        
 
-            for name, param in self.b_layers.named_parameters():
+    def init_pgen(self):
+        # Policy generating network is comprised of a 2 layer MLP, but implemented as convolutional layers 
 
-                param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
+        self.pgen = []
 
-                param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
-                        requires_grad=self.use_grad)
-            for name, param in self.c_layers.named_parameters():
+        for mm in range(len(self.hid_dims)+2):
+            self.pgen.append(nn.Sequential(\
+                    nn.Conv2d(16,16,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh(),\
+                    nn.Conv2d(16,4,1, stride=1, padding=0, bias=False),\
+                    nn.Tanh()))
 
-                param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
+    def neighborhood(self, state_grid):
 
-                param[:] = torch.nn.Parameter(torch.tensor(\
-                        my_params[param_start:param_stop].reshape(param.shape), \
-                        requires_grad=self.use_grad), \
-                        requires_grad=self.use_grad)
+        my_dim = state_grid.shape[1]
+        moore = torch.tensor(np.array([[[[1, 1, 1], [1, 0, 1], [1, 1, 1]]]]),\
+                dtype=torch.float32)
+        sobel_y = torch.tensor(np.array([[[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]]]),\
+                dtype=torch.float32)
+        sobel_x = torch.tensor(np.array([[[[-1, 2, -1], [0, 0, 0], [1, 2, 1]]]]), \
+                dtype=torch.float32)
 
-    def reset(self):
+        moore /= torch.sum(moore)
 
-        self.init_params()
-        self.clear_nodes()
-        self.clear_traces()
+        sobel_x = sobel_x * torch.ones((state_grid.shape[1], 1, 3,3))
+        sobel_y = sobel_y * torch.ones((state_grid.shape[1], 1, 3,3))
+        #sobel_x = sobel_x.to(device)
+        #sobel_y = sobel_y.to(device)
+
+        moore = moore * torch.ones((state_grid.shape[1], 1, 3,3))
+        #moore = moore.to(device)
+
+        grad_x = F.conv2d(state_grid, sobel_x, padding=1, groups=my_dim)
+        grad_y = F.conv2d(state_grid, sobel_y, padding=1, groups=my_dim)
+
+        moore_neighborhood = F.conv2d(state_grid, moore, padding=1, groups=my_dim)
+
+        perception = torch.cat([state_grid, moore_neighborhood, grad_x, grad_y], axis=1)
+
+        return perception
+
+    def update(self):
+
+        num_layers = len(list(self.layers.named_parameters()))
+        layer_count = 0
+
+        dim_ch = 4
+
+        for param in list(self.layers.named_parameters()):
+
+            layer_dim_x, layer_dim_y = param[1].shape[1], param[1].shape[0]
+            state_grid = torch.ones(1, dim_ch, layer_dim_y, layer_dim_x, requires_grad=False)
+
+            self.eligibility_layers[layer_count] += torch.matmul(self.nodes[layer_count+1].T, self.nodes[layer_count]) 
+            self.eligibility_layers[layer_count] = torch.clamp(self.eligibility_layers[layer_count], min=self.e_min, max=self.e_max)
+
+            state_grid[0,0,:,:] = param[1]
+            state_grid[0,1,:,:] = self.eligibility_layers[layer_count]
+            state_grid[0,2,:,:] *= self.nodes[layer_count]
+            state_grid[0,3,:,:] *= self.nodes[layer_count + 1].T
+
+            for jj in range(self.ca_steps):
+                perception = self.neighborhood(state_grid[:,:4])
+                state_grid = self.pgen[layer_count](perception)
+
+
+            param[1][:,:] = state_grid[0, 0, :, :].squeeze()
+
+            layer_count += 1
 
 
 class CPPNHebbianMLP(HebbianMLP):
 
-    def __init__(self, args, discrete=False, use_grad=False):
+    def __init__(self, **kwargs): 
 
-        super(CPPNHebbianMLP, self).__init__(args, discrete, use_grad)
+        super(CPPNHebbianMLP, self).__init__(**kwargs)
         self.plastic = False
-        self.set_traces()
+        self.init_traces()
 
 
         self.init_cppn()
@@ -675,8 +758,8 @@ class CPPNHebbianMLP(HebbianMLP):
 
 class CPPNMLPPolicy(MLPPolicy):
 
-    def __init__(self, args, discrete=False, use_grad=False):
-        super(CPPNMLPPolicy, self).__init__(args, discrete, use_grad)
+    def __init__(self, **kwargs):
+        super(CPPNMLPPolicy, self).__init__(**kwargs)
         """
         CPPN
 
@@ -783,6 +866,7 @@ if __name__ == "__main__":
     temp = MLPPolicy(args)
     temp = HebbianMLP(args)
     temp = ABCHebbianMLP(args)
+    temp = HebbianCAMLP(args)
     temp = CPPNHebbianMLP(args)
     temp = CPPNMLPPolicy(args)
 

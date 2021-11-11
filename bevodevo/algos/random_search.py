@@ -1,19 +1,9 @@
-from abc import ABC, abstractmethod
 import os
 import sys
 import subprocess
 
 import torch
 import numpy as np
-import time
-
-import gym
-import pybullet
-import pybullet_envs
-
-
-from mpi4py import MPI
-comm = MPI.COMM_WORLD
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
@@ -38,7 +28,7 @@ class RandomSearch(ESPopulation):
         self.elite_pop, elite_fitness = self.get_elite(fitness_list)
 
         for nn in range(self.elite_keep):
-            self.population[nn].set_params(self.champions[nn].get_params())
+            self.population[nn].set_params(self.champions[nn])
 
         for kk in range(self.elite_keep, self.population_size):
             agent_params = np.random.randn(self.population[kk].num_params) \

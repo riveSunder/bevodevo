@@ -1,19 +1,8 @@
-from abc import ABC, abstractmethod
 import os
 import sys
-import subprocess
 
 import torch
 import numpy as np
-import time
-
-import gym
-import pybullet
-import pybullet_envs
-
-
-from mpi4py import MPI
-comm = MPI.COMM_WORLD
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
@@ -115,7 +104,7 @@ class PGESPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj].set_params(self.champions[jj].get_params()) #[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj])
 
             my_start = self.elite_keep
         else:
