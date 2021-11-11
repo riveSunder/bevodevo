@@ -17,12 +17,13 @@ class GatedRNNPolicy(Policy):
     """
     This agent only uses autograd and does not depend on PyTorch
     """
-    def __init__(self, args, discrete=False):
-        super(SimpleGatedRNNPolicy, self).__init__()
+    def __init__(self, args, discrete=False, use_grad=False):
+        super(GatedRNNPolicy, self).__init__()
 
         # 
         self.discrete = discrete
         self.final_act = nn.Tanh() if not discrete else nn.Softmax(dim=-1)
+        self.use_grad = use_grad
 
         # architectural meta-parameters
         self.dim_x = args["dim_x"]
@@ -143,7 +144,8 @@ class GatedRNNPolicy(Policy):
 
         for submodel in [self.g, self.j, self.w_h2y]:
             for param in submodel.parameters():
-                param = param.detach() 
+                #param = param.detach() 
+                param.require_grad = self.use_grad
 
     def reset(self):
         self.cell_state *= 0. 
