@@ -1,19 +1,8 @@
-from abc import ABC, abstractmethod
 import os
 import sys
-import subprocess
 
 import torch
 import numpy as np
-import time
-
-import gym
-import pybullet
-import pybullet_envs
-
-
-from mpi4py import MPI
-comm = MPI.COMM_WORLD
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
@@ -66,16 +55,15 @@ class CMAESPopulation(ESPopulation):
 
         params_mean = np.mean(elite_params, axis=0)
 
-        covar = (1 / self.elite_keep) * np.matmul((elite_params - self.distribution[0]).T,\
+        covar = (1 / self.elite_keep) \
+                * np.matmul((elite_params - self.distribution[0]).T,\
                 (elite_params - self.distribution[0]))
 
         covar = np.clip(covar, -1e1, 1e1)
 
         var = np.mean( (elite_params - self.distribution[0])**2, axis=0)
 
-        #covar[np.eye(self.population[0].num_params) == 1.0] = 0.0
-
-        covar_matrix = covar # + np.diag(var)
+        covar_matrix = covar 
 
         self.distribution = [params_mean, \
                 covar_matrix]
@@ -83,7 +71,7 @@ class CMAESPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj])
 
             my_start = self.elite_keep
         else:

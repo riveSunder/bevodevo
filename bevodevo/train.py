@@ -18,23 +18,21 @@ comm = MPI.COMM_WORLD
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
 from bevodevo.policies.mlps import MLPPolicy, CPPNMLPPolicy, CPPNHebbianMLP,\
-        HebbianMLP, ABCHebbianMLP, HebbianMetaMLP, ABCHebbianMetaMLP
+        HebbianMLP, ABCHebbianMLP, HebbianCAMLP, HebbianCAMLP2
 
-from bevodevo.algos.es import ESPopulation, ConstrainedESPopulation
+from bevodevo.algos.es import ESPopulation
 from bevodevo.algos.cmaes import CMAESPopulation
 from bevodevo.algos.pges import PGESPopulation
 from bevodevo.algos.nes import NESPopulation
 from bevodevo.algos.ga import GeneticPopulation
 from bevodevo.algos.random_search import RandomSearch
 
-
+# TODO: reminder to implement RL baselines 
 #from bevodevo.algos.vpg import VanillaPolicyGradient
 #from bevodevo.algos.dqn import DQN
 
 
 def train(argv):
-
-    # env_name, generations, population_size, 
     
     if "gatedrnn" in argv.policy.lower():
         policy_fn = GatedRNNPolicy
@@ -48,27 +46,23 @@ def train(argv):
     elif "abchebbianmlp" in argv.policy.lower():
         policy_fn = ABCHebbianMLP
         argv.policy = "ABCHebbianMLP"
-    elif "abchebbianmetamlp" in argv.policy.lower():
-        policy_fn = ABCHebbianMetaMLP
-        argv.policy = "ABCHebbianMetaMLP"
     elif "cppnhebbianmlp" in argv.policy.lower():
         policy_fn = CPPNHebbianMLP
         argv.policy = "CPPNHebbianMLP"
+    elif "hebbiancamlp2" in argv.policy.lower():
+        policy_fn = HebbianCAMLP2
+    elif "hebbiancamlp" in argv.policy.lower():
+        policy_fn = HebbianCAMLP
     elif "hebbianmlp" in argv.policy.lower():
         policy_fn = HebbianMLP
         argv.policy = "HebbianMLP"
-    elif "hebbianmetamlp" in argv.policy.lower():
-        policy_fn = HebbianMetaMLP
-        argv.policy = "HebbianMetaMLP"
     elif "mlppolicy" in argv.policy.lower():
         policy_fn = MLPPolicy
         argv.policy = "MLPPolicy"
     else:
         assert False, "policy not found, check spelling?"
 
-    if "ConstrainedESPopulation" == argv.algorithm:
-        population_fn = ConstrainedESPopulation
-    elif "ESPopulation" == argv.algorithm:
+    if "ESPopulation" == argv.algorithm:
         population_fn = ESPopulation
     elif "CMAESPopulation" == argv.algorithm:
         population_fn = CMAESPopulation
