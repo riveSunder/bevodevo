@@ -13,19 +13,18 @@ class GatedRNNPolicy(Policy):
     """
     This agent only uses autograd and does not depend on PyTorch
     """
-    def __init__(self, **kwargs):
-        super(GatedRNNPolicy, self).__init__()
+    def __init__(self, args, discrete=False):
+        super(SimpleGatedRNNPolicy, self).__init__()
 
         # 
-        self.discrete = kwargs["discrete"] if "discrete" in kwargs.keys() else False
-        self.use_grad = kwargs["use_grad"] if "use_grad" in kwargs.keys() else False
-        self.final_act = nn.Tanh() if not self.discrete else nn.Softmax(dim=-1)
+        self.discrete = discrete
+        self.final_act = nn.Tanh() if not discrete else nn.Softmax(dim=-1)
 
         # architectural meta-parameters
-        self.dim_x = kwargs["dim_x"] if "dim_x" in kwargs.keys() else 5 
-        self.dim_h = kwargs["dim_h"] if "dim_h" in kwargs.keys() else 16
+        self.dim_x = args["dim_x"]
+        self.dim_h = args["dim_h"]
         self.dim_h = self.dim_h[0] if type(self.dim_h) == list else self.dim_h
-        self.dim_y = kwargs["dim_y"] if "dim_y" in kwargs.keys() else 1 
+        self.dim_y = args["dim_y"]
         self.j_act = nn.Tanh()
 
         # starting parameters for population
@@ -37,7 +36,7 @@ class GatedRNNPolicy(Policy):
         
         self.init_params()
 
-        if "params" in kwargs.keys() and kwargs["params"] is not None: 
+        if args["params"] is not None: 
             self.set_params(args["params"])
     
     def init_params(self):

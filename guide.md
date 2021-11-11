@@ -1,5 +1,10 @@
 # Bootstrapping Deep Evolutionary and Developmental Learning
 
+<div align="center">
+<img src="assets/by_your_tether.jpg" width=25%>
+<br>
+</div>
+
 ## Table of contents
 
 1. [Introduction](#introduction)
@@ -9,12 +14,12 @@
     1. [Installation](#installation)
     1. [Running Experiments](#running-experiments)
     1. [Visualizing Experimental Results](#visualizing-experimental-results)
-
+1. [EvoDevo Examples](./examples.md)
 1. [EvoDevo Reading List](#evodevo-reading-list)
 
 ## _Release Status and Roadmap_
 
-Bootstrapping Deep Evolutionary and Developmental Learning is an ongoing project, currently released at an _alpha_ stage. That means lots of sharp edges, some missing or unconnected functionality, inevitable bugs, and plenty of room to affect the direction of the project going forward. If you find an issue or have a suggestion for a new feature or algorithm, your addition to this project's issues list posts is very welcome.  
+Bootstrapping Deep Evolutionary and Developmental Learning is an ongoing project, currently released at an _alpha_ stage. That means lots of sharp edges, some missing or unconnected functionality, inevitable bugs, and plenty of room to affect the direction of the project going forward. If you find an issue or have a suggestion for a new feature or algorithm, your addition to this project's issues tab is very welcome.  
 
 Project priorities include adding tutorials and exercises, increasing the scope of developmental algorithms available, and improved utility (for example by exposing more functionality to `train`). And bug removal, naturally. 
 
@@ -36,23 +41,19 @@ Candidate algorithms for implementation in `bevodevo` include:
 
 ### Why?
 
-Evolution is a fascinating example of unpredictable complexity arising from simple rules. It also is capable of generating machines that are orders of magnitude more efficient than any human-engineered alternative, with the capacity for intelligence in the human brain demanding only 20 Watts (or perhaps ~150 Watts if we include all supporting functionality) a prime example. All this from a set of rules that can essentially be boiled down to a less catchy version of the [classic refrain](https://en.wikipedia.org/wiki/Que_Sera,_Sera_(Whatever_Will_Be,_Will_Be) from stoic philosophy.
+Evolution is a fascinating example of unpredictable complexity arising from simple rules. It also is capable of generating machines that are orders of magnitude more efficient than any human-engineered alternative, with the capacity for intelligence in the human brain (with energy requirements of only 20 Watts, or perhaps ~150 Watts if we include all supporting functionality) a prime example. All this from a set of rules that can essentially be boiled down to a less catchy version of a [classic refrain](https://en.wikipedia.org/wiki/Que_Sera,_Sera_(Whatever_Will_Be,_Will_Be) from stoic philosophy.
 
 <blockquote><em>ce qui sera très probablement, sera très probablement</em></blockquote>
 
-In other words, evolution selects for whatever traits are most likely to persist in a given context. There are no guarantees that the process builds toward intelligencei or even increasing complexity, and it's readily apparent in our current epoch that selective pressure varies incredibly depending on context.  
+In other words, evolution selects for whatever traits are most likely to persist in a given context. There are no guarantees that the process builds toward intelligence or even increasing complexity, and it's readily apparent in our current epoch that selective pressure varies incredibly depending on context.  
 
-Evolutionary Computation has a long history, beginning at about the same time as the field of artificial intelligence was named<a href="#fn1">[\*](#fn1)</a> and roughly concurrently with the first wave of artificial neural networks[\*\*](#fn2). There are many types of algorithms loosely based on ideas from evolution: genetic algorithms, evolutionary programming, and evolutionary strategies to name a few. We'll broadly refer to all of these as evoutionary computation (EC). Recently there has been a resurgence in EC research, largely as a side-effect of the massive renaissance in neural networks we've seen in the deep learning era. EC offers a number of advantages over machine learning in neural networks based on backpropagation, as well as many challenges. While EC may be an attractive alternative to other machine learning or optimization methods for some tasks, particularly open-ended or reinforcement learning style tasks, that's not the only reason to study the field. 
+Evolutionary Computation has a long history, beginning at about the same time as the field of artificial intelligence got its name at the [Dartmouth workshop](https://en.wikipedia.org/wiki/Dartmouth_workshop) and roughly concurrently with the first wave of [artificial neural networks](https://en.wikipedia.org/wiki/Artificial_neural_network#History). There are many  types of algorithms loosely based on ideas from evolution: genetic algorithms, natural gradients, and evolutionary strategies to name a few. We'll broadly refer to all of these as evoutionary computation (EC). Recently there has been a resurgence in EC research, largely as a side-effect of the massive renaissance in neural networks we've seen in the deep learning era. EC offers a number of advantages over machine learning in neural networks based on backpropagation, as well as many challenges. While EC may be an attractive alternative to other machine learning or optimization methods for some tasks, particularly open-ended or reinforcement learning style tasks, that's not the only reason to study the field. 
 
-Perhaps an equally valid reason to study EC and evolution in general is for the mental tools it provides. Human capacity for different types of thinking is influenced by what they think about, most notably for our purposes the technology of the day. People with ample access to computers are likely to think about problems and their own mental processes via analogy to computational systems[\*\*\*](#fn3). Studying evolutionary computation may give you fresh mental models for dealing with new problems. This adds beneficial diversity to your cognitive tools, and as we'll learn from studying evolution and EC, a larger population is more likely to yield fitter solutions by avoiding random fixation of traits, typical for small populations. This is part of the reason that island populations look so strange: while they are actually [less diverse](https://www.nature.com/articles/hdy199746) than continental populations, they evolve bizarre traits heavily influenced by randomness and characteristics of the founding population.  
-
-Thinking in evolutionary terms can yield valuable insights into modern problems. It's not just about learning to control a robot or play arcade games: antibiotic resistance, emerging zoonotic diseases, ecological robustness, and environmental consequences of the anthropocene are clear and present problems which stand to benefit from thinking in evolutionary, and evolutionary computational, terms. 
-
+Perhaps an equally valid reason to study EC and evolution in general is for the mental tools it provides, much like modern humans may think about problems or even their own thinking using computer-based metaphors. Studying concepts from evolution such as mutation, selection, and population size not only can help you better understand those areas where evolution (epidemiology, antibiotic resistance, extinction, etc.), but it gives you another angle from which to approach problems in general. 
 
 ### What?
 
-Bootstraping Deep Evolutaionary and Developmental Learning (`bevodevo` for short) is a resource developed for the study of and experimentation with evo/devo algorithms. The main focus is on tasks formulated in the framework of reinforcement learning, an attractive field of machine learning for it's familiarity with intuitive ideas about how learning occurs to maximize desired rewards.
-
+Bootstraping Deep Evolutaionary and Developmental Learning (`bevodevo` for short) is a resource developed for the study of and experimentation with evo/devo algorithms. The main focus is on tasks formulated in the framework of reinforcement learning, an attractive field of machine learning for it's familiarity with intuitive ideas about how learning occurs to maximize desired rewards. In evolutionary computation we select for the _fitness_ of _populations_ rather than optimizing for the _expected total rewards_ of _agents_, but both have enough in common to use the same problem formulation of environments providing rewards and observations to agents, which in turn produce actions that affect environments. 
 ## Getting Started
 
 ### Installation
@@ -71,7 +72,7 @@ begins an experiment training the default MLP policy on the Ant task in PyBullet
 
 * `-p` or `--population` - The number of individuals in the training population. 
 * `-g` or `--generations` - The maximum number of generations (or epochs for RL algorithms) to train.  
-* `-x` or `--exp\_name` - The name under which to save the experimental results. The default for this option is temp_exp.
+* `-x` or `--exp\_name` - The name under which to save the experimental results. The default for this option is temp\_exp.
 * `-s` or `--seeds` - Seeds for initializing pseudorandom number generators. You can use multiple integer values for this flag, separated by spaces, and `train` will run the experiment from scratch for each seed. 
 * `-pi` or `--policy` - The policy architecture to use. The default is MLPPolicy, and that is the policy that has been used for testing most often and should have the least bugs.
 * `-w` or `--workers` - Number of worker threads to use when collecting trajectories.  
@@ -80,21 +81,21 @@ begins an experiment training the default MLP policy on the Ant task in PyBullet
     * RandomSearch - Search randomly from a single mean=0 distribution and save the policies with the best all-time fitness scores.
     * ESPopulation - A Gaussian evolution strategies algorithm that updates the means of the parameters distribution based on the elite 12.5% of agents. 
     * GAPopulation - A simple genetic algorithm with 3 types of mutation (pruning, changing value, and recombination)
-    * PGESPopulation - Policy gradient evolution strategy
+    * PGESPopulation - Plain gradient evolution strategy
     * NESPopulation - Natural evolution strategy
     * CMAESPopulation - Covariant matrix adaptation evolution strategy
 
 ### Visualizing Experimental Results
 
-After running an experiment you'll probably want to have a look at the results. Currently `bevodevo` has built in plotting for training curves and a utility for visualizing and/or evaluating agent performance. 
+After running an experiment you'll probably want to have a look at the results. Currently `bevodevo` has built-in plotting for training curves and a utility for visualizing and/or evaluating agent performance. 
 
-A simple training curve can be produce with `plot.py`.
+A simple training curve can be produced with `plot.py`.
 
 ```
 python bevodevo/plot.py -f results/test_exp/
 ```
 
-Plotting has limited functionality right now, but you can point the script to the folder containing your progress log(s) and change the dependent variability to compare performance with respect to different parameters, <em>e.g.</em> sample efficiency or wall time. You can also ask the script to save the plot for you with `-s` or `--save\_fig`. For example, you can plot and save figures for fitness w.r.t. the total steps taken by all individuals in a population throughout training by calling
+Plotting has limited functionality, but you can point the script to the folder containing your progress log(s) and change the dependent variability to compare performance with respect to different parameters, <em>e.g.</em> sample efficiency or wall time. You can also ask the script to save the plot for you with `-s` or `--save\_fig`. For example, you can plot and save figures for fitness w.r.t. the total steps taken by all individuals in a population throughout training by calling
 
 ```
 python bevodevo/plot.py -f results/test_exp -x total_env_interacts -s True
@@ -110,7 +111,7 @@ You can also visualize the performance of your top policy, and save frames for m
 python bevodevo/enjoy.py -n InvertedPendulumSwingupBulletEnv-v0 -fp ./results/test_exp/
 ```
 
-You can evaluate over multiple runs by setting the `-e` or `--episodes` flag to a desired number of episodes. `-nr` or `-no\_render` is useful to run evaluations quickly without rendering the environment, but you can expect lower quality images if you use this flag with `-s` to save frames without displaying them (for PyBullet environments at least). You can also limit the number of steps per episode with `-ms` or `-max\_steps`. Finally, make sure that your policy matches the policy used during training. This can be set using the `-pi` flag. 
+You can evaluate over multiple runs by setting the `-e` or `--episodes` flag to a desired number of episodes. `-nr` or `-no\_render` is useful to run evaluations quickly without rendering the environment, but you can expect lower quality images if you use this flag with `-s` to save frames without displaying them (for PyBullet environments at least). You can also limit the number of steps per episode with `-ms` or `-max\_steps`. Finally, make sure that your policy matches the policy used during training. This can be set using the `-pi` flag.  
 
 
 ## Evo/Devo Reading List

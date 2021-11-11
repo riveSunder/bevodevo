@@ -28,7 +28,7 @@ class RandomSearch(ESPopulation):
         self.elite_pop, elite_fitness = self.get_elite(fitness_list)
 
         for nn in range(self.elite_keep):
-            self.population[nn].set_params(self.champions[nn].get_params())
+            self.population[nn].set_params(self.champions[nn])
 
         for kk in range(self.elite_keep, self.population_size):
             agent_params = np.random.randn(self.population[kk].num_params) \

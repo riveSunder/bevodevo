@@ -55,7 +55,8 @@ class CMAESPopulation(ESPopulation):
 
         params_mean = np.mean(elite_params, axis=0)
 
-        covar = np.matmul((elite_params - self.distribution[0]).T,\
+        covar = (1 / self.elite_keep) \
+                * np.matmul((elite_params - self.distribution[0]).T,\
                 (elite_params - self.distribution[0]))
 
         covar = np.clip(covar, -1e1, 1e1)
@@ -70,7 +71,7 @@ class CMAESPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj])
 
             my_start = self.elite_keep
         else:

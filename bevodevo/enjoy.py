@@ -18,7 +18,9 @@ comm = MPI.COMM_WORLD
 
 from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
-from bevodevo.policies.mlps import MLPPolicy
+from bevodevo.policies.mlps import MLPPolicy, CPPNMLPPolicy, CPPNHebbianMLP,\
+        HebbianMLP, ABCHebbianMLP, HebbianMetaMLP, ABCHebbianMetaMLP
+
 
 from bevodevo.algos.es import ESPopulation
 from bevodevo.algos.cmaes import CMAESPopulation
@@ -45,14 +47,35 @@ def enjoy(argv):
     print(my_file_path)
 
     if "gatedrnn" in argv.policy.lower():
-        policy_fn = SimpleGatedRNNPolicy
-    elif "impala"  in argv.policy.lower():
+        policy_fn = GatedRNNPolicy
+        argv.policy = "GatedRNNPolicy" 
+    elif "impala" in argv.policy.lower():
         policy_fn = ImpalaCNNPolicy
+        argv.policy = "ImpalaCNNPolicy"
+    elif "cppnmlp" in argv.policy.lower():
+        policy_fn = CPPNMLPPolicy
+        arg.policy = "CPPNMLPPolicy"
+    elif "abchebbianmlp" in argv.policy.lower():
+        policy_fn = ABCHebbianMLP
+        argv.policy = "ABCHebbianMLP"
+    elif "abchebbianmetamlp" in argv.policy.lower():
+        policy_fn = ABCHebbianMetaMLP
+        argv.policy = "ABCHebbianMetaMLP"
+    elif "cppnhebbianmlp" in argv.policy.lower():
+        policy_fn = CPPNHebbianMLP
+        argv.policy = "CPPNHebbianMLP"
+    elif "hebbianmlp" in argv.policy.lower():
+        policy_fn = HebbianMLP
+        argv.policy = "HebbianMLP"
+    elif "hebbianmetamlp" in argv.policy.lower():
+        policy_fn = HebbianMetaMLP
+        argv.policy = "HebbianMetaMLP"
     elif "mlppolicy" in argv.policy.lower():
         policy_fn = MLPPolicy
+        argv.policy = "MLPPolicy"
     else:
-        print("policy not found, resorting to default MLP policy")
-        policy_fn = MLPPolicy
+        assert False, "policy not found, check spelling?"
+
 
     if ".npy" in my_file_path:
         my_data = np.load(my_file_path, allow_pickle=True)[np.newaxis][0]
@@ -77,7 +100,7 @@ def enjoy(argv):
         obs_dim = obs_dim
     else:
         obs_dim = obs_dim[0]
-    hid_dim = [32,32] 
+    hid_dim = 16 #[32,32] 
 
 
     try:
@@ -104,19 +127,26 @@ def enjoy(argv):
         if type(parameters) is dict:
             agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
                     "dim_y": act_dim, "params": parameters["elite_0"]} 
+            my_params = agent_args["params"]
+            agent_args["params"] = None
         else:
             agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, \
                     "dim_y": act_dim, "params": parameters} 
+            my_params = agent_args["params"]
+            agent_args["params"] = None
             if ".pt" in my_file_path:
                 agent_args["params"] = None
 
+
+
         agent = policy_fn(agent_args, discrete=discrete)
+
 
         if ".pt" in my_file_path:
             agent.load_state_dict(parameters)
             agent_args["params"] = agent.get_params()
-
-        agent.set_params(agent_args["params"])
+        else:
+            agent.set_params(my_params)
 
         epd_rewards = []
         for episode in range(argv.episodes):
@@ -159,8 +189,6 @@ def enjoy(argv):
                     done = True
 
 
-
-
             epd_rewards.append(sum_reward)
 
         print("reward stats for elite {} over {} epds:".format(agent_idx, argv.episodes))
@@ -180,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--episodes", type=int,\
             help="number of episodes", default=5)
     parser.add_argument("-s", "--save_frames", type=bool, \
-            help="save frames or not (not implemented)", default=False)
+            help="save frames or not", default=False)
     parser.add_argument("-nr", "--no_render", type=bool,\
             help="don't render", default=False)
     parser.add_argument("-ms", "--max_steps", type=int,\

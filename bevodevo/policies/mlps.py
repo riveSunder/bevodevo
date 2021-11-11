@@ -51,7 +51,7 @@ class MLPPolicy(nn.Module):
 
         self.init_params()
 
-        if "params" in kwargs.keys() and kwargs["params"] is not None: 
+        if kwargs["params"] is not None: 
             self.set_params(kwargs["params"])
 
     def init_params(self):

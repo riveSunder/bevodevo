@@ -19,12 +19,12 @@ class GeneticPopulation(ESPopulation):
     def mutate(self, params):
 
         # mutation parameters
-        pruning_chance = 1.0#  0.33
-        weight_chance = 0.0 #0.33
-        recombination_chance = 0.0 #0.33
+        pruning_chance =  0.167
+        weight_chance = 0.33
+        recombination_chance = 0.167
 
-        pruning_rate = 0.025
-        weight_var = 1e-1
+        pruning_rate = 0.05
+        weight_var = 0.20
         recombination_rate = 0.125
 
         mut_chance = np.random.random((3))
@@ -65,7 +65,7 @@ class GeneticPopulation(ESPopulation):
         if self.elitism:
             
             for jj in range(self.elite_keep):
-                self.population[jj] = self.champions[jj]
+                self.population[jj].set_params(self.champions[jj])
 
             my_start = self.elite_keep
         else:
