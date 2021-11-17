@@ -51,49 +51,52 @@ class ESPopulation:
             self.env = self.env_fn(self.env_args, render_mode="human")
 
 
-        self.population[agent_idx].reset()
-        for epd in range(epds):
+        for agent_epd in range(epds):
 
-            obs = self.env.reset()
-            prev_obs = None
-            done = False
-            sum_reward = 0.0
-            while not done and not(self.abort):
-                action = self.get_agent_action(obs, agent_idx)
+            self.population[agent_idx].reset()
 
-                if type(action) == np.ndarray: 
-                    action = action[0]
+            for epd in range(epds):
 
-                if not(self.discrete):
+                obs = self.env.reset()
+                prev_obs = None
+                done = False
+                sum_reward = 0.0
+                while not done and not(self.abort):
+                    action = self.get_agent_action(obs, agent_idx)
 
-                    if np.isnan(action).any():
-                        print("warning, nan encountered in action")
-                        action = np.nan_to_num(action, 0.0)
-                        self.abort = True
+                    if type(action) == np.ndarray: 
+                        action = action[0]
 
-                    if (np.max(action) > self.env.action_space.high).any()\
-                            or (np.min(action) < self.env.action_space.low).any():
-                        action = np.clip(action, self.env.action_space.low, self.env.action_space.high)
+                    if not(self.discrete):
 
-                prev_obs = obs
-                try:
-                    obs, reward, done, info = self.env.step(action)
-                except:
-                    import pdb; pdb.set_trace()
+                        if np.isnan(action).any():
+                            print("warning, nan encountered in action")
+                            action = np.nan_to_num(action, 0.0)
+                            self.abort = True
 
-                if len(obs.shape) == 3:
-                    obs = obs / 255.
-                    if prev_obs is not None:
-                        obs = 1.5 * obs - 0.5 * prev_obs
-                else:
-                    obs = torch.Tensor(obs).unsqueeze(0)
+                        if (np.max(action) > self.env.action_space.high).any()\
+                                or (np.min(action) < self.env.action_space.low).any():
+                            action = np.clip(action, self.env.action_space.low, self.env.action_space.high)
 
-                sum_reward += reward
-                total_steps += 1
+                    prev_obs = obs
+                    try:
+                        obs, reward, done, info = self.env.step(action)
+                    except:
+                        import pdb; pdb.set_trace()
 
-            sum_rewards.append(sum_reward)
+                    if len(obs.shape) == 3:
+                        obs = obs / 255.
+                        if prev_obs is not None:
+                            obs = 1.5 * obs - 0.5 * prev_obs
+                    else:
+                        obs = torch.Tensor(obs).unsqueeze(0)
 
-        fitness = np.sum(sum_rewards) / epds
+                    sum_reward += reward
+                    total_steps += 1
+
+                sum_rewards.append(sum_reward)
+
+        fitness = np.sum(sum_rewards) / epds**2
 
         if(0):
             if view_elite:

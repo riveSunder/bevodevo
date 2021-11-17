@@ -19,6 +19,7 @@ from bevodevo.policies.rnns import GatedRNNPolicy
 from bevodevo.policies.cnns import ImpalaCNNPolicy
 from bevodevo.policies.mlps import MLPPolicy, CPPNMLPPolicy, CPPNHebbianMLP,\
         HebbianMLP, ABCHebbianMLP, HebbianCAMLP, HebbianCAMLP2
+from bevodevo.policies.pruning import HebbianPruningMLP, ABCDPruningMLP
 
 from bevodevo.algos.es import ESPopulation
 from bevodevo.algos.cmaes import CMAESPopulation
@@ -44,7 +45,7 @@ def train(argv):
         policy_fn = CPPNMLPPolicy
         arg.policy = "CPPNMLPPolicy"
     elif "abchebbianmlp" in argv.policy.lower():
-        policy_fn = ABCHebbianMLP
+        policy_fn = ABCDHebbianMLP
         argv.policy = "ABCHebbianMLP"
     elif "cppnhebbianmlp" in argv.policy.lower():
         policy_fn = CPPNHebbianMLP
@@ -53,6 +54,10 @@ def train(argv):
         policy_fn = HebbianCAMLP2
     elif "hebbiancamlp" in argv.policy.lower():
         policy_fn = HebbianCAMLP
+    elif "hebbianpruningmlp" in argv.policy.lower():
+        policy_fn = HebbianPruningMLP
+    elif "abcdpruningmlp" in argv.policy.lower():
+        policy_fn = ABCDPruningMLP
     elif "hebbianmlp" in argv.policy.lower():
         policy_fn = HebbianMLP
         argv.policy = "HebbianMLP"
