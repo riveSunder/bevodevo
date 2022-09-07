@@ -122,6 +122,8 @@ class GatedRNNPolicy(Policy):
             param[:] = torch.nn.Parameter(torch.Tensor(\
                     my_params[param_start:param_stop].reshape(param.shape)))
 
+            param_start = param_stop
+
         for name, param in self.j.named_parameters():
 
             param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
@@ -129,6 +131,9 @@ class GatedRNNPolicy(Policy):
             param[:] = torch.nn.Parameter(torch.tensor(\
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
+
+            param_start = param_stop
+
 
         for name, param in self.w_h2y.named_parameters():
 
@@ -138,9 +143,13 @@ class GatedRNNPolicy(Policy):
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
 
+            param_start = param_stop
+
+
         for submodel in [self.g, self.j, self.w_h2y]:
             for param in submodel.parameters():
                 param = param.detach() 
+
 
     def reset(self):
         self.cell_state *= 0. 

@@ -152,6 +152,8 @@ class ImpalaCNNPolicy(nn.Module):
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
 
+            param_start = param_stop
+
     def reset(self):
         pass
 
