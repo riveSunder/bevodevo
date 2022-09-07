@@ -23,9 +23,11 @@ class GatedRNNPolicy(Policy):
 
         # architectural meta-parameters
         self.dim_x = kwargs["dim_x"] if "dim_x" in kwargs.keys() else 5 
+        self.input_dim = self.dim_x
         self.dim_h = kwargs["dim_h"] if "dim_h" in kwargs.keys() else 16
         self.dim_h = self.dim_h[0] if type(self.dim_h) == list else self.dim_h
         self.dim_y = kwargs["dim_y"] if "dim_y" in kwargs.keys() else 1 
+        self.action_dim = self.dim_y
         self.j_act = nn.Tanh()
 
         # starting parameters for population
