@@ -22,13 +22,12 @@ class ImpalaCNNPolicy(nn.Module):
         self.activations = kwargs["activations"] if "activations" in kwargs.keys() \
                 else [F.relu, F.relu, F.relu, F.relu]
                 
-
         # TODO: allow adjustable layers and parameter dims
         if type(self.input_dim) == list:
             assert len(self.input_dim) >= 3, "cnn expects 3D input dims"
         elif type(self.input_dim) == int:
             print("warning, cnns expect 3D input dims. Assuming height, width = 64, 64")
-            self.input_dim = [64, 64, args["dim_x"]]
+            self.input_dim = [64, 64, 3]
 
 
         self.use_bias = True
@@ -151,6 +150,8 @@ class ImpalaCNNPolicy(nn.Module):
             param[:] = torch.nn.Parameter(torch.tensor(\
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
+
+            param_start = param_stop
 
     def reset(self):
         pass

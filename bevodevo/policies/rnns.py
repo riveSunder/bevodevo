@@ -23,9 +23,11 @@ class GatedRNNPolicy(Policy):
 
         # architectural meta-parameters
         self.dim_x = kwargs["dim_x"] if "dim_x" in kwargs.keys() else 5 
+        self.input_dim = self.dim_x
         self.dim_h = kwargs["dim_h"] if "dim_h" in kwargs.keys() else 16
         self.dim_h = self.dim_h[0] if type(self.dim_h) == list else self.dim_h
         self.dim_y = kwargs["dim_y"] if "dim_y" in kwargs.keys() else 1 
+        self.action_dim = self.dim_y
         self.j_act = nn.Tanh()
 
         # starting parameters for population
@@ -122,6 +124,8 @@ class GatedRNNPolicy(Policy):
             param[:] = torch.nn.Parameter(torch.Tensor(\
                     my_params[param_start:param_stop].reshape(param.shape)))
 
+            param_start = param_stop
+
         for name, param in self.j.named_parameters():
 
             param_stop = param_start + reduce(lambda x,y: x*y, param.shape)
@@ -129,6 +133,9 @@ class GatedRNNPolicy(Policy):
             param[:] = torch.nn.Parameter(torch.tensor(\
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
+
+            param_start = param_stop
+
 
         for name, param in self.w_h2y.named_parameters():
 
@@ -138,9 +145,13 @@ class GatedRNNPolicy(Policy):
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
 
+            param_start = param_stop
+
+
         for submodel in [self.g, self.j, self.w_h2y]:
             for param in submodel.parameters():
                 param = param.detach() 
+
 
     def reset(self):
         self.cell_state *= 0. 
