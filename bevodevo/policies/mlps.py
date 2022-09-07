@@ -291,6 +291,9 @@ class ABCHebbianMLP(HebbianMLP):
 
     def init_traces(self):
 
+        self.dim_list = [self.input_dim]
+        self.dim_list.extend(self.hid_dims)
+        self.dim_list.append(self.action_dim)
         # clear node activations, start at 0 everywhere
         self.clear_nodes()
 
@@ -759,7 +762,7 @@ class CPPNHebbianMLP(HebbianMLP):
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
 
-                param_start = param_stop
+            param_start = param_stop
 
 
 
@@ -859,7 +862,7 @@ class CPPNMLPPolicy(MLPPolicy):
                     my_params[param_start:param_stop].reshape(param.shape), requires_grad=self.use_grad), \
                     requires_grad=self.use_grad)
 
-                param_start = param_stop
+            param_start = param_stop
 
 
         # 
