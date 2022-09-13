@@ -40,7 +40,7 @@ def enjoy(argv):
                 current_gen = int(filename.split("_")[5]) 
                 if latest_gen < current_gen: 
                     latest_gen = current_gen
-                    my_file_path = argv.file_path + filename
+                    my_file_path = os.path.join(argv.file_path, filename)
     else:
         my_file_path = argv.file_path
 

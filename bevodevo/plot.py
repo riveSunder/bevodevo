@@ -23,7 +23,8 @@ if __name__ == "__main__":
 
     for filename in my_dir:
         if "progress" in filename and ".npy" in filename:
-            my_data = np.load(args.filepath + filename, allow_pickle=True)
+            filepath = os.path.join(args.filepath, filename)
+            my_data = np.load(filepath, allow_pickle=True)
 
             my_data = my_data[np.newaxis][0]
             print("exp hyperparameters: \n", my_data["args"])
