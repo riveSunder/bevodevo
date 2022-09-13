@@ -1,0 +1,18 @@
+Name                                                            Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------------------
+/home/rive/.venv/bevodevo/lib/python3.6/distutils/__init__.py      74     38    49%   13, 36-48, 54-69, 76-78, 84-86, 92-99
+bevodevo/__init__.py                                                8      0   100%
+bevodevo/envs/__init__.py                                           0      0   100%
+bevodevo/envs/landscapes.py                                        96     76    21%   11-45, 51-52, 56, 60, 66-69, 73, 77, 88-90, 94-109, 112, 116-151, 156-187, 194
+bevodevo/policies/__init__.py                                       0      0   100%
+bevodevo/policies/base.py                                          19      6    68%   12, 15, 18, 21, 24, 30
+bevodevo/policies/cnns.py                                          81     31    62%   27, 53, 87-92, 103-118, 123-132, 157, 164-173
+bevodevo/policies/mlps.py                                         451    104    77%   31-41, 46, 55, 65-67, 72, 90, 96-103, 127, 142, 162-166, 174, 191-192, 202, 283-284, 330-340, 490-492, 497, 517, 537-557, 615-640, 644-669, 699-701, 739-748, 823-825, 892-905
+bevodevo/policies/params.py                                        25     12    52%   16-21, 25-28, 31, 34, 37-39, 42, 47
+bevodevo/policies/rnns.py                                          85     11    87%   43, 73, 89-96, 115, 157-158, 165
+bevodevo/tests/policies/test_cnns.py                               17      0   100%
+bevodevo/tests/policies/test_mlps.py                               68      0   100%
+bevodevo/tests/policies/test_rnns.py                                8      0   100%
+bevodevo/tests/test_all.py                                          4      0   100%
+---------------------------------------------------------------------------------------------
+TOTAL                                                             936    278    70%
