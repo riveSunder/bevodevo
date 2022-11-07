@@ -103,7 +103,7 @@ class ESPopulation:
 
         return fitness, total_steps
 
-    def get_elite(self, fitness_list, mode=0):
+    def get_elite(self, fitness_list, mode=1):
         """
         select elite population according to fitness using one of three methods:
             0 - truncation. Select the top self.elite_keep policies   
@@ -317,7 +317,7 @@ class ESPopulation:
         self.population_size = population_size
         self.elite_keep = int(0.125 * self.population_size)
         
-        agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, "dim_y": act_dim, "params": None} 
+        agent_args = {"dim_x": obs_dim, "dim_h": hid_dim, "dim_y": act_dim, "params": None, "discrete": self.discrete} 
 
 
 
